@@ -5,11 +5,8 @@ import sys
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(12, GPIO.OUT)
 frequency = 5
-dc_low = 20
-dc_mid = 40
-dc_high = 100
-frequency = (15, 7, 5)
-dc = (70, 90, 100)
+frequency = (15, 7, 5) #List for testing different frequencies (the lower the frequency, the higher the speed)
+dc = (70, 90, 100) #List for testing different duty cycles (the higher the duty cycle, the higher the speed)
 interval = 60
 
 try:
