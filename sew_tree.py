@@ -20,16 +20,18 @@ REST_API_URL = "https://api.powerbi.com/beta/d9dc4061-aba4-47ad-9604-c994ff5caff
 
 """ *** VARIABLES *** """
 # FIXED PARAMETERS FOR GAUGES IN POWER BI
-minVWC = 0
-maxVWC = 100
-wet = 4
+minVWC = 0 #
+maxVWC = 100 #
+wet = 40 #
 VWC = {}
 GAIN = 1
 maxT_Cpu = 80
 minT_Cpu = 0
 okT_Cpu = 45
-tank_empty = 0
-tank_full = 125
+tank_empty_1 = 0 #
+tank_full_1 = 125 #
+tank_empty_2 = 0 #
+tank_full_2 = 125 #
 
 #Rockwool temperature setup (SENSOR DS18B20)
 os.system('modprobe w1-gpio')
@@ -71,7 +73,7 @@ def vwc():
     for i in range(4):
           # Read the specified ADC channel using the previously set gain value.
           values[i] = adc.read_adc(i, gain=GAIN)
-          VWC[i+1] =  (-0.0083*values[i]) + 167.81 # Old valibration made by EL
+          VWC[i+1] =  (-0.0083*values[i]) + 47.81 # Old valibration made by EL
           #VWC[i+1] =  (-0.00908*values[i]) + 187 # Calibratio made by Théo
     print "VWC = ", VWC
     return VWC
@@ -218,7 +220,7 @@ while True:
 
         """ FORMATTING DATA FOR POWER BI"""
 
-        data = '[{{"timestamp": "{0}", "t_cpu": "{1:0.1f}", "vwc_1": "{2:0.1f}", "vwc_2": "{3:0.1f}", "vwc_3": "{4:0.1f}", "vwc_4":"{5:0.1f}","w_lev_1": "{6:0.1f}","w_lev_2": "{7:0.1f}","air_t_in": "{8:0.1f}","air_h_in": "{9:0.1f}","air_t_out": "{10:0.1f}","air_h_out": "{11:0.1f}","t_surf_a": "{12:0.1f}","t_surf_b": "{13:0.1f}","t_treat_w": "{14:0.1f}", "t_waste_w": "{15:0.1f}"}}]'.format(now, t_cpu, VWC[1], VWC[2], VWC[3], VWC[4], w_lev_1, w_lev_2, ait_t_h_in[0], ait_t_h_in[1], ait_t_h_out[0], ait_t_h_out[1], temperatures[0], temperatures[1], temperatures[2], temperatures[3])
+        data = '[{{"timestamp": "{0}", "t_cpu": "{1:0.1f}", "vwc_1": "{2:0.1f}", "vwc_2": "{3:0.1f}", "vwc_3": "{4:0.1f}", "vwc_4":"{5:0.1f}","w_lev_1": "{6:0.1f}","w_lev_2": "{7:0.1f}","air_t_in": "{8:0.1f}","air_h_in": "{9:0.1f}","air_t_out": "{10:0.1f}","air_h_out": "{11:0.1f}","t_surf_a": "{12:0.1f}","t_surf_b": "{13:0.1f}","t_treat_w": "{14:0.1f}", "t_waste_w": "{15:0.1f}", "minVWC": "{16:0.1f}", "maxVWC": "{17:0.1f}", "wet": "{18:0.1f}", "tank_empty_1": "{19:0.1f}", "tank_full_1": "{20:0.1f}", "tank_empty_2": "{21:0.1f}", "tank_full_2": "{22:0.1f}"}}]'.format(now, t_cpu, VWC[1], VWC[2], VWC[3], VWC[4], w_lev_1, w_lev_2, ait_t_h_in[0], ait_t_h_in[1], ait_t_h_out[0], ait_t_h_out[1], temperatures[0], temperatures[1], temperatures[2], temperatures[3], minVWC, maxVWC, wet, tank_empty_1, tank_full_1, tank_empty_2, tank_full_2)
         print ("data", data)
 
         """ SENDING DATA TO POWER BI"""
@@ -227,6 +229,7 @@ while True:
         #print("POST request to Power BI with data:{0}".format(data))
         print("Response: HTTP {0} {1}\n".format(response.getcode(), response.read()))
         print "DATA SENT TO POWER BI\n"
+        del temperatures[:]
         time.sleep(10)
 
     except:
