@@ -7,7 +7,7 @@ html5lib==0.999
 numpy==1.8.2
 picamera==1.13
 pigpio==1.35
-pyOpenSSL==0.13.1
+pyOpenSSL==17.5.0
 pyparsing==2.0.3
 pyserial==2.6
 spidev==3.0
