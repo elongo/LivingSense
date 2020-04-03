@@ -24,6 +24,12 @@ try:
             gv.pin_map = [0,0,0,2,0,3,0,4,14,0,15,17,18,27,0,22,23,0,24,10,0,9,25,11,8,0,7,0,0,5,0,6,12,13,0,19,16,26,20,0,21]
         else:
             gv.pin_map = [0,0,0,3,0,5,0,7,8,0,10,11,12,13,0,15,16,0,18,19,0,21,22,23,24,0,26,0,0,29,0,31,32,33,0,35,36,37,38,0,40]
+        """
+        if gv.use_pigpio:
+            gv.pin_map = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        else:
+            gv.pin_map = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        """
     else:
         print 'Unknown pi pin revision.  Using pin mapping for rev 3'
 
@@ -47,7 +53,7 @@ try:
         pi = pigpio.pi()
     else:
         GPIO.setwarnings(False)
-        GPIO.setmode(GPIO.BOARD) #IO channels are identified by header connector pin numbers. Pin numbers are 
+        GPIO.setmode(GPIO.BOARD) #IO channels are identified by header connector pin numbers. Pin numbers are
 except Exception:
     pass
 
@@ -71,7 +77,7 @@ try:
         pi.set_mode(pin_rain_sense, pigpio.INPUT)
         pi.set_pull_up_down(pin_rain_sense, pigpio.PUD_UP)
         pi.set_mode(pin_relay, pigpio.OUTPUT)
-    else:      
+    else:
         GPIO.setup(pin_rain_sense, GPIO.IN, pull_up_down = GPIO.PUD_UP)
         GPIO.setup(pin_relay, GPIO.OUT)
 except NameError:
@@ -92,16 +98,16 @@ def setup_pins():
         if gv.platform == 'pi':  # If this will run on Raspberry Pi:
             if not gv.use_pigpio:
                 GPIO.setmode(GPIO.BOARD)  # IO channels are identified by header connector pin numbers. Pin numbers are always the same regardless of Raspberry Pi board revision.
-            pin_sr_dat = gv.pin_map[13]
+            pin_sr_dat = gv.pin_map[7]
             pin_sr_clk = gv.pin_map[7]
-            pin_sr_noe = gv.pin_map[11]
-            pin_sr_lat = gv.pin_map[15]
+            pin_sr_noe = gv.pin_map[7]
+            pin_sr_lat = gv.pin_map[7]
         elif gv.platform == 'bo':  # If this will run on Beagle Bone Black:
             pin_sr_dat = gv.pin_map[11]
             pin_sr_clk = gv.pin_map[13]
             pin_sr_noe = gv.pin_map[14]
             pin_sr_lat = gv.pin_map[12]
-            
+
     except AttributeError:
         pass
 
@@ -112,7 +118,7 @@ def setup_pins():
             pi.set_mode(pin_sr_clk, pigpio.OUTPUT)
             pi.set_mode(pin_sr_dat, pigpio.OUTPUT)
             pi.set_mode(pin_sr_lat, pigpio.OUTPUT)
-            pi.write(pin_sr_noe, 1)
+            pi.write(pin_sr_noe, 0)
             pi.write(pin_sr_clk, 0)
             pi.write(pin_sr_dat, 0)
             pi.write(pin_sr_lat, 0)
@@ -121,10 +127,10 @@ def setup_pins():
             GPIO.setup(pin_sr_clk, GPIO.OUT)
             GPIO.setup(pin_sr_dat, GPIO.OUT)
             GPIO.setup(pin_sr_lat, GPIO.OUT)
-            GPIO.output(pin_sr_noe, GPIO.HIGH)
+            GPIO.output(pin_sr_noe, GPIO.LOW) # Changed by elongo, to fit the sew tree needs, where all all relays should start DOWN
             GPIO.output(pin_sr_clk, GPIO.LOW)
             GPIO.output(pin_sr_dat, GPIO.LOW)
-            GPIO.output(pin_sr_lat, GPIO.LOW)                      
+            GPIO.output(pin_sr_lat, GPIO.LOW)
     except NameError:
         pass
 
@@ -200,7 +206,7 @@ def set_output():
     with gv.output_srvals_lock:
         gv.output_srvals = gv.srvals
         if gv.sd['alr']:
-            gv.output_srvals = [1-i for i in gv.output_srvals] #  invert logic of shift registers    
+            gv.output_srvals = [1-i for i in gv.output_srvals] #  invert logic of shift registers
         disableShiftRegisterOutput()
         setShiftRegister(gv.output_srvals)  # gv.srvals stores shift register state
         enableShiftRegisterOutput()
