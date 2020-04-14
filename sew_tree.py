@@ -198,12 +198,14 @@ def ReadSensors():
 def air_in(): #in default I2C bus 1
     temperature_in, humidity_in, crc_check_in = am_in.sense()
     print "hi, this was air_IN"
+    print "crc_check_in = ", crc_check_in
     return temperature_in, humidity_in
     time.sleep(0.05)
 
 def air_out(): #in I2C bus 3
     temperature_out, humidity_out, crc_check_out = am_out.sense()
-    "this was air_OUT"
+    print "this was air_OUT"
+    print "crc_check_out = ", crc_check_out
     return temperature_out, humidity_out
     time.sleep(0.05)
 

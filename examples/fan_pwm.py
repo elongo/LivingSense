@@ -6,7 +6,9 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(12, GPIO.OUT)
 frequency = 5
 frequency = (15, 7, 5) #List for testing different frequencies (the lower the frequency, the higher the speed)
-dc = (70, 90, 100) #List for testing different duty cycles (the higher the duty cycle, the higher the speed)
+dc = (70, 90, 90) #List for testing different duty cycles (the higher the duty cycle, the higher the speed)
+#frequency = (15, 15, 15) #List for testing different frequencies (the lower the frequency, the higher the speed)
+#dc = (60, 60, 60) #List for testing different duty cycles (the higher the duty cycle, the higher the speed)
 interval = 60
 
 try:

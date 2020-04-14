@@ -6,9 +6,11 @@
     "idd": 1, 
     "ipas": 0, 
     "ir": [
-        255
+        255, 
+        0
     ], 
     "iw": [
+        0, 
         0
     ], 
     "lang": "en_US", 
@@ -18,17 +20,18 @@
     "mas": 0, 
     "mm": 0, 
     "mo": [
+        0, 
         0
     ], 
     "mtoff": 0, 
     "mton": 0, 
     "name": "SewTree_System_1", 
-    "nbrd": 1, 
+    "nbrd": 2, 
     "nopts": 13, 
     "nprogs": 1, 
-    "nst": 8, 
+    "nst": 16, 
     "password": "5b2f7b5d0437e3f3ee11f20530b14bca2006b9b7", 
-    "pigpio": 1, 
+    "pigpio": 0, 
     "pwd": "b3BlbmRvb3I=", 
     "rbt": 0, 
     "rd": 0, 
@@ -40,7 +43,8 @@
     "sdt": 0, 
     "seq": 1, 
     "show": [
-        255
+        255, 
+        1
     ], 
     "snlen": 32, 
     "tf": 1, 

@@ -1,10 +1,18 @@
 [
-    "PUMP_0", 
-    "PUMP_1", 
-    "VALVE_1", 
-    "VALVE_2", 
-    "VALVE_3", 
-    "FAN_LOW", 
-    "FAN_MID", 
-    "FAN_HIGH"
+    "(1) PUMP_0", 
+    "(2) PUMP_1", 
+    "(3) VALVE_1", 
+    "(4) VALVE_2", 
+    "(5) VALVE_3", 
+    "(6) VALVE_4", 
+    "(7) FAN_LOW", 
+    "(8) FAN_MID", 
+    "(9) FAN_HIGH", 
+    "S10", 
+    "S11", 
+    "S12", 
+    "S13", 
+    "S14", 
+    "S15", 
+    "S16"
 ]
