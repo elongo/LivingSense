@@ -47,31 +47,50 @@ chan_list_BCM = (16, 5, 6, 18, 14, 17, 27, 22, 25) #BCM numbering
 chan_list_BOARD = (36, 29, 31, 12, 8, 11, 13, 15) #BOARD numbering
 relay_9 = 22 #relay 9 is is working the opposite to other relays (True = High, False = Low)
 
-# Set pins as output and input
+# Set pins as output and input Mechanical Relays (1-8)
 for i in range(8):
     GPIO.setup(chan_list_BOARD[i], GPIO.OUT)  # 9 Relays
     # Set trigger to False (Low)
     GPIO.output(chan_list_BOARD[i], True)
 
-GPIO.setup(relay_9, GPIO.OUT)  # 9 Relays
-# Set trigger to False (Low)
-GPIO.output(relay_9, False)
+#GPIO setup for SSR (Optic relay -> Fan Control)
+#GPIO.setmode(GPIO.BOARD)
+GPIO.setup(32, GPIO.OUT)
+#frequency = (15, 7, 5) #List for testing different frequencies (the lower the frequency, the higher the speed)
+#dc = (70, 90, 100) #List for testing different duty cycles (the higher the duty cycle, the higher the speed)
 
 """ SIP variables """
 gv.restarted = 1
 
 def device_on(sid):
     try:
-        if sid in range(0,8):
+        if sid in range(0,7):
             GPIO.output(chan_list_BOARD[sid], False)
             print "sid = ", sid
-            print "RELAY ", sid, "IS ON"
+            print "RELAY ", sid, " IS ON"
             time.sleep(0.1)
-        elif sid == 8:
-            GPIO.output(relay_9, True) #relay 9 is is working the opposite to other relays (True = High, False = Low)
-            print "sid = ", sid
-            print "RELAY 9 on ", sid, "IS ON"
+        elif sid == 8: # FAN_LOW
+            p = GPIO.PWM(32, 15)  # GPIO.PWM(channel, frequency (in Hz)
+            p.start(70) #p.start(dc)
+            print "**************   PWM ************ FAN LOW"
+            print "**************   PWM ************ FAN LOW"
+            print "**************   PWM ************ FAN LOW"
+            print "**************   PWM ************ FAN LOW"
+            print "**************   PWM ************ FAN LOW"
+            print "**************   PWM ************ FAN LOW"
+            time.sleep(60)
+        elif sid == 9: #FAN_MID
+            p = GPIO.PWM(32, 7)  # GPIO.PWM(channel, frequency (in Hz)
+            p.start(0)
+            p.ChangeDutyCycle(90)
             time.sleep(0.1)
+            print "**************   PWM ************ FAN MID"
+        elif sid == 10: #FAN_HIGH
+            p = GPIO.PWM(32, 5)  # GPIO.PWM(channel, frequency (in Hz)
+            p.start(0)
+            p.ChangeDutyCycle(100)
+            time.sleep(0.1)
+            print "**************   PWM ************ FAN HIGH"
         else:
             print "NO DEVICES WERE TURNED ON"
     except:
@@ -80,15 +99,14 @@ def device_on(sid):
 
 def device_off(sid):
     try:
-        if sid in range(0,8):
+        if sid in range(0,7):
             GPIO.output(chan_list_BOARD[sid], True)
             print "sid = ", sid
             print "RELAY ", sid, "IS OFF"
             time.sleep(0.1)
+        #elif sid in range(8,10):
         elif sid == 8:
-            GPIO.output(relay_9, False) #relay 9 is is working the opposite to other relays (True = High, False = Low)
-            print "sid = ", sid
-            print "RELAY 9 on ", sid, "IS ON"
+            p.stop()
             time.sleep(0.1)
         else:
             print "NO DEVICES WERE TURNED OFF"
@@ -182,6 +200,8 @@ def timing_loop():
                                 gv.srvals[sid] = 1  # station is turned on
                                 set_output()
                                 device_on(sid)
+                                print "SID = ", sid
+                                #time.sleep(5)
                                 gv.sbits[b] |= 1 << s  # Set display to on
                                 gv.ps[sid][0] = gv.rs[sid][3]
                                 gv.ps[sid][1] = gv.rs[sid][2]
@@ -195,6 +215,8 @@ def timing_loop():
                                 gv.srvals[masid] = 1
                                 set_output()
                                 device_on(sid)
+                                print "SID = ", sid
+                                #time.sleep(5)
 
             for s in range(gv.sd['nst']):
                 if gv.rs[s][1]:  # if any station is scheduled
