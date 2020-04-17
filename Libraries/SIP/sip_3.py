@@ -72,10 +72,16 @@ def fan_speed(sid):
             time.sleep(0.1)
             time_on = time_on-0.1
             if time_on <= 0.1:
-                p.stop()
-                break
+                try:
+                    p = GPIO.PWM(32, frequency[2])  # GPIO.PWM(channel, frequency (in Hz)
+                    p.stop()
+                    print "p.stop() PASSED"
+                    time.sleep(0.1)
+                    break
+                except:
+                    print ValueError
             print "time_on = ", time_on
-    except ValueError:
+    except:
         print " FAN COULDN'T START"
         print ValueError
         pass
@@ -92,25 +98,10 @@ def device_on(sid):
             print "**************   HI FAN SPEED %%%%%%%%%%%%%%"
             try:
                 thread.start_new_thread(fan_speed, (sid, ))
-                print "hello THREAD"
-                print "hello THREAD"
-                print "hello THREAD"
-                print "hello THREAD"
-                print "hello THREAD"
-                print "hello THREAD"
-                print "hello THREAD"
-                print "hello THREAD"
-
             except ValueError as valerr:
-                print "NO00000000000000000 THREAD. ValueError = ", valerr
+                print valerr
                 pass
-            print "**************   PWM ************ FAN LOW"
-            print "**************   PWM ************ FAN LOW"
-            print "**************   PWM ************ FAN LOW"
-            print "**************   PWM ************ FAN LOW"
-            print "**************   PWM ************ FAN LOW"
-            print "**************   PWM ************ FAN LOW"
-            time.sleep(0.1)
+                time.sleep(0.1)
         elif sid == 9: #FAN_MID
             p = GPIO.PWM(32, 7)  # GPIO.PWM(channel, frequency (in Hz)
             p.start(0)
