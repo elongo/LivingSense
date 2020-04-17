@@ -45,7 +45,6 @@ global chan_list
 # Channel list for setting up all GPIO at the same time
 chan_list_BCM = (16, 5, 6, 18, 14, 17, 27, 22, 25) #BCM numbering
 chan_list_BOARD = (36, 29, 31, 12, 8, 11, 13, 15) #BOARD numbering
-relay_9 = 22 #relay 9 is is working the opposite to other relays (True = High, False = Low)
 
 # Set pins as output and input Mechanical Relays (1-8)
 for i in range(8):
@@ -61,21 +60,27 @@ dc = (70, 90, 100) #List for testing different duty cycles (the higher the duty 
 """ SIP variables """
 gv.restarted = 1
 
-"""FAN_THREAD FUNCTION """
-def fan_speed():
+"""FAN_THREAD FUNCTION (SSR/PWM) """
+def fan_speed(sid):
     try:
+        #if (GPIO.output(32, 0)):
+        time_on = gv.rs[sid][2] #gv.rs[sid][2] is the duration given in the UI (see rd from gv.py)
         while 1:
-            p = GPIO.PWM(32, 5)  # GPIO.PWM(channel, frequency (in Hz)
-            p.start(dc[100])
-            #p.ChangeDutyCycle(100)
-            print "IN SIP_3.PY -> SPEED ", 1, " --> ","frequency =", frequency[0], "// dc =", dc[0]
-            time.sleep(0.5)
-    except KeyboardInterrupt:
-        p.stop()
-        print "STOPPING FAN"
+            p = GPIO.PWM(32, frequency[2])  # GPIO.PWM(channel, frequency (in Hz)
+            p.start(dc[2])
+            print "IN SIP_3.PY -> SPEED ", 1, " --> ","frequency =", frequency[2], "// dc =", dc[2]
+            time.sleep(0.1)
+            time_on = time_on-0.1
+            if time_on <= 0.1:
+                p.stop()
+                break
+            print "time_on = ", time_on
+    except ValueError:
+        print " FAN COULDN'T START"
+        print ValueError
         pass
 
-""" ON and OFF OC MECHANICAL RELAYS DEVICES"""
+""" ON/OFF DEVICES - MECHANICAL RELAYS """
 def device_on(sid):
     try:
         if sid in range(0,7):
@@ -86,7 +91,7 @@ def device_on(sid):
         elif sid == 8: # FAN_LOW
             print "**************   HI FAN SPEED %%%%%%%%%%%%%%"
             try:
-                thread.start_new_thread(fan_speed, ())
+                thread.start_new_thread(fan_speed, (sid, ))
                 print "hello THREAD"
                 print "hello THREAD"
                 print "hello THREAD"
@@ -96,8 +101,8 @@ def device_on(sid):
                 print "hello THREAD"
                 print "hello THREAD"
 
-            except:
-                print "NO00000000000000000 THREAD"
+            except ValueError as valerr:
+                print "NO00000000000000000 THREAD. ValueError = ", valerr
                 pass
             print "**************   PWM ************ FAN LOW"
             print "**************   PWM ************ FAN LOW"
@@ -120,8 +125,8 @@ def device_on(sid):
             print "**************   PWM ************ FAN HIGH"
         else:
             print "NO DEVICES WERE TURNED ON"
-    except:
-        print "##### problem turning ON station ", sid
+    except ValueError as valerr:
+        print "##### problem turning ON station ", sid, " BEACUSE OF VALUE ERROR", valerr
         time.sleep(10)
 
 def device_off(sid):
@@ -133,7 +138,9 @@ def device_off(sid):
             time.sleep(0.1)
         #elif sid in range(8,10):
         elif sid == 8:
-            p.stop()
+            thread.start_new_thread(fan_speed, (sid, ))
+            #p = GPIO.PWM(32, 5)  # GPIO.PWM(channel, frequency (in Hz)
+            #p.stop()
             print "FAN OFF"
             print "FAN OFF"
             print "FAN OFF"
@@ -144,11 +151,10 @@ def device_off(sid):
             time.sleep(0.1)
         else:
             print "NO DEVICES WERE TURNED OFF"
-    except:
-        print "§§§§§§§ problem turning OFF station  ---> ", sid
+    except ValueError as valerr:
+        print "§§§§§§§ problem turning OFF station  ---> ", sid, "BECAUSE OF", valerr
+        pass
         time.sleep(10)
-
-
 
 
 def timing_loop():
@@ -206,6 +212,12 @@ def timing_loop():
                                             gv.rs[sid][3] = i + 1  # store program number
                                             gv.ps[sid][0] = i + 1  # store program number for display
                                             gv.ps[sid][1] = duration
+                        return duration
+                        print "DURATION = ", duration
+                        print "DURATION = ", duration
+                        print "DURATION = ", duration
+                        print "DURATION = ", duration
+                        print "DURATION = ", duration
                         schedule_stations(p[7:7 + gv.sd['nbrd']])  # turns on gv.sd['bsy']
 
         if gv.sd['bsy']:
