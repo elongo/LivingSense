@@ -12,8 +12,6 @@ import thread
 from calendar import timegm
 import sys
 import RPi.GPIO as GPIO
-import os
-#from fan_speed import fan_speed
 sys.path.append('./plugins')
 
 import web  # the Web.py module. See webpy.org (Enables the Python SIP web interface)
@@ -67,18 +65,17 @@ gv.restarted = 1
 def fan_speed():
     try:
         while 1:
-            p = GPIO.PWM(32, frequency[0])  # GPIO.PWM(channel, frequency (in Hz)
-            p.start(dc[0])
-            p.ChangeDutyCycle(dc[0])
-            print "SPEED ", 1, " --> ","frequency =", frequency[0], "// dc =", dc[0]
-            time.sleep(30)
+            p = GPIO.PWM(32, 5)  # GPIO.PWM(channel, frequency (in Hz)
+            p.start(dc[100])
+            #p.ChangeDutyCycle(100)
+            print "IN SIP_3.PY -> SPEED ", 1, " --> ","frequency =", frequency[0], "// dc =", dc[0]
+            time.sleep(0.5)
     except KeyboardInterrupt:
         p.stop()
         print "STOPPING FAN"
         pass
 
-
-
+""" ON and OFF OC MECHANICAL RELAYS DEVICES"""
 def device_on(sid):
     try:
         if sid in range(0,7):
@@ -88,9 +85,6 @@ def device_on(sid):
             time.sleep(0.1)
         elif sid == 8: # FAN_LOW
             print "**************   HI FAN SPEED %%%%%%%%%%%%%%"
-            #fan_speed()
-            #os.system("python fan_speed_2.py")
-            #execfile('fan_speed_2.py')
             try:
                 thread.start_new_thread(fan_speed, ())
                 print "hello THREAD"
@@ -101,12 +95,10 @@ def device_on(sid):
                 print "hello THREAD"
                 print "hello THREAD"
                 print "hello THREAD"
-                #threading.Thread(target=fan_speed).start()
+
             except:
                 print "NO00000000000000000 THREAD"
                 pass
-            """p = GPIO.PWM(32, 15)  # GPIO.PWM(channel, frequency (in Hz)
-            p.start(70) #p.start(dc) """
             print "**************   PWM ************ FAN LOW"
             print "**************   PWM ************ FAN LOW"
             print "**************   PWM ************ FAN LOW"
@@ -142,6 +134,13 @@ def device_off(sid):
         #elif sid in range(8,10):
         elif sid == 8:
             p.stop()
+            print "FAN OFF"
+            print "FAN OFF"
+            print "FAN OFF"
+            print "FAN OFF"
+            print "FAN OFF"
+            print "FAN OFF"
+            print "FAN OFF"
             time.sleep(0.1)
         else:
             print "NO DEVICES WERE TURNED OFF"
