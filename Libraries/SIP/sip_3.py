@@ -55,7 +55,7 @@ for i in range(8):
 #GPIO setup for SSR (Optic relay -> Fan Control)
 GPIO.setup(32, GPIO.OUT)
 frequency = (10, 7, 5) #List for testing different frequencies (the lower the frequency, the higher the speed)
-dc = (70, 90, 100) #List for testing different duty cycles (the higher the duty cycle, the higher the speed)
+dc = (100, 100, 100) #List for testing different duty cycles (the higher the duty cycle, the higher the speed)
 
 """ SIP variables """
 gv.restarted = 1
@@ -66,20 +66,25 @@ def fan_speed(sid):
         #if (GPIO.output(32, 0)):
         time_on = gv.rs[sid][2] #gv.rs[sid][2] is the duration given in the UI (see rd from gv.py)
         while 1:
-            p = GPIO.PWM(32, frequency[2])  # GPIO.PWM(channel, frequency (in Hz)
-            p.start(dc[2])
-            print "IN SIP_3.PY -> SPEED ", 1, " --> ","frequency =", frequency[2], "// dc =", dc[2]
-            time.sleep(0.1)
+            p = GPIO.PWM(32, frequency[sid-8])  # GPIO.PWM(channel, frequency (in Hz)
+            p.start(dc[sid-8])
+            print "IN SIP_3.PY -> SPEED ", 1, " --> ","frequency =", frequency[sid-8], "// dc =", dc[sid-8]
             time_on = time_on-0.1
+            time.sleep(0.1)
             if time_on <= 0.1:
                 try:
-                    p = GPIO.PWM(32, frequency[2])  # GPIO.PWM(channel, frequency (in Hz)
                     p.stop()
-                    print "p.stop() PASSED"
+                    print "p.stop() EXECUTED"
                     time.sleep(0.1)
                     break
                 except:
                     print ValueError
+            print "time_on = ", time_on
+            print "time_on = ", time_on
+            print "time_on = ", time_on
+            print "time_on = ", time_on
+            print "time_on = ", time_on
+            print "time_on = ", time_on
             print "time_on = ", time_on
     except:
         print " FAN COULDN'T START"
@@ -94,7 +99,7 @@ def device_on(sid):
             print "sid = ", sid
             print "RELAY ", sid, " IS ON"
             time.sleep(0.1)
-        elif sid == 8: # FAN_LOW
+        elif sid in range(8,11): # FAN_LOW
             print "**************   HI FAN SPEED %%%%%%%%%%%%%%"
             try:
                 thread.start_new_thread(fan_speed, (sid, ))
@@ -102,18 +107,6 @@ def device_on(sid):
                 print valerr
                 pass
                 time.sleep(0.1)
-        elif sid == 9: #FAN_MID
-            p = GPIO.PWM(32, 7)  # GPIO.PWM(channel, frequency (in Hz)
-            p.start(0)
-            p.ChangeDutyCycle(90)
-            time.sleep(0.1)
-            print "**************   PWM ************ FAN MID"
-        elif sid == 10: #FAN_HIGH
-            p = GPIO.PWM(32, 5)  # GPIO.PWM(channel, frequency (in Hz)
-            p.start(0)
-            p.ChangeDutyCycle(100)
-            time.sleep(0.1)
-            print "**************   PWM ************ FAN HIGH"
         else:
             print "NO DEVICES WERE TURNED ON"
     except ValueError as valerr:
@@ -126,19 +119,6 @@ def device_off(sid):
             GPIO.output(chan_list_BOARD[sid], True)
             print "sid = ", sid
             print "RELAY ", sid, "IS OFF"
-            time.sleep(0.1)
-        #elif sid in range(8,10):
-        elif sid == 8:
-            thread.start_new_thread(fan_speed, (sid, ))
-            #p = GPIO.PWM(32, 5)  # GPIO.PWM(channel, frequency (in Hz)
-            #p.stop()
-            print "FAN OFF"
-            print "FAN OFF"
-            print "FAN OFF"
-            print "FAN OFF"
-            print "FAN OFF"
-            print "FAN OFF"
-            print "FAN OFF"
             time.sleep(0.1)
         else:
             print "NO DEVICES WERE TURNED OFF"
