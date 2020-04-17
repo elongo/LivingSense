@@ -12,6 +12,8 @@ import thread
 from calendar import timegm
 import sys
 import RPi.GPIO as GPIO
+import os
+#from fan_speed import fan_speed
 sys.path.append('./plugins')
 
 import web  # the Web.py module. See webpy.org (Enables the Python SIP web interface)
@@ -54,13 +56,28 @@ for i in range(8):
     GPIO.output(chan_list_BOARD[i], True)
 
 #GPIO setup for SSR (Optic relay -> Fan Control)
-#GPIO.setmode(GPIO.BOARD)
 GPIO.setup(32, GPIO.OUT)
-#frequency = (15, 7, 5) #List for testing different frequencies (the lower the frequency, the higher the speed)
-#dc = (70, 90, 100) #List for testing different duty cycles (the higher the duty cycle, the higher the speed)
+frequency = (10, 7, 5) #List for testing different frequencies (the lower the frequency, the higher the speed)
+dc = (70, 90, 100) #List for testing different duty cycles (the higher the duty cycle, the higher the speed)
 
 """ SIP variables """
 gv.restarted = 1
+
+"""FAN_THREAD FUNCTION """
+def fan_speed():
+    try:
+        while 1:
+            p = GPIO.PWM(32, frequency[0])  # GPIO.PWM(channel, frequency (in Hz)
+            p.start(dc[0])
+            p.ChangeDutyCycle(dc[0])
+            print "SPEED ", 1, " --> ","frequency =", frequency[0], "// dc =", dc[0]
+            time.sleep(30)
+    except KeyboardInterrupt:
+        p.stop()
+        print "STOPPING FAN"
+        pass
+
+
 
 def device_on(sid):
     try:
@@ -70,15 +87,33 @@ def device_on(sid):
             print "RELAY ", sid, " IS ON"
             time.sleep(0.1)
         elif sid == 8: # FAN_LOW
-            p = GPIO.PWM(32, 15)  # GPIO.PWM(channel, frequency (in Hz)
-            p.start(70) #p.start(dc)
+            print "**************   HI FAN SPEED %%%%%%%%%%%%%%"
+            #fan_speed()
+            #os.system("python fan_speed_2.py")
+            #execfile('fan_speed_2.py')
+            try:
+                thread.start_new_thread(fan_speed, ())
+                print "hello THREAD"
+                print "hello THREAD"
+                print "hello THREAD"
+                print "hello THREAD"
+                print "hello THREAD"
+                print "hello THREAD"
+                print "hello THREAD"
+                print "hello THREAD"
+                #threading.Thread(target=fan_speed).start()
+            except:
+                print "NO00000000000000000 THREAD"
+                pass
+            """p = GPIO.PWM(32, 15)  # GPIO.PWM(channel, frequency (in Hz)
+            p.start(70) #p.start(dc) """
             print "**************   PWM ************ FAN LOW"
             print "**************   PWM ************ FAN LOW"
             print "**************   PWM ************ FAN LOW"
             print "**************   PWM ************ FAN LOW"
             print "**************   PWM ************ FAN LOW"
             print "**************   PWM ************ FAN LOW"
-            time.sleep(60)
+            time.sleep(0.1)
         elif sid == 9: #FAN_MID
             p = GPIO.PWM(32, 7)  # GPIO.PWM(channel, frequency (in Hz)
             p.start(0)
@@ -199,8 +234,6 @@ def timing_loop():
                             if gv.sd['mas'] - 1 != sid:  # if not master
                                 gv.srvals[sid] = 1  # station is turned on
                                 set_output()
-                                device_on(sid)
-                                print "SID = ", sid
                                 #time.sleep(5)
                                 gv.sbits[b] |= 1 << s  # Set display to on
                                 gv.ps[sid][0] = gv.rs[sid][3]
@@ -210,6 +243,8 @@ def timing_loop():
                                     gv.rs[masid][0] = gv.rs[sid][0] + gv.sd['mton']
                                     gv.rs[masid][1] = gv.rs[sid][1] + gv.sd['mtoff']
                                     gv.rs[masid][3] = gv.rs[sid][3]
+                                device_on(sid)
+                                print "SID = ", sid
                             elif gv.sd['mas'] == sid + 1:
                                 gv.sbits[b] |= 1 << sid
                                 gv.srvals[masid] = 1
