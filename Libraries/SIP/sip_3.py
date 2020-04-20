@@ -53,9 +53,11 @@ for i in range(8):
     GPIO.output(chan_list_BOARD[i], True)
 
 #GPIO setup for SSR (Optic relay -> Fan Control)
-GPIO.setup(32, GPIO.OUT)
+sid = 8
 frequency = (10, 7, 5) #List for testing different frequencies (the lower the frequency, the higher the speed)
-dc = (100, 100, 100) #List for testing different duty cycles (the higher the duty cycle, the higher the speed)
+dc = (90, 95, 100) #List for testing different duty cycles (the higher the duty cycle, the higher the speed)
+GPIO.setup(32, GPIO.OUT)
+p = GPIO.PWM(32, frequency[sid-8])  # GPIO.PWM(channel, frequency (in Hz)
 
 """ SIP variables """
 gv.restarted = 1
@@ -63,19 +65,20 @@ gv.restarted = 1
 """FAN_THREAD FUNCTION (SSR/PWM) """
 def fan_speed(sid):
     try:
-        #if (GPIO.output(32, 0)):
         time_on = gv.rs[sid][2] #gv.rs[sid][2] is the duration given in the UI (see rd from gv.py)
         while 1:
-            p = GPIO.PWM(32, frequency[sid-8])  # GPIO.PWM(channel, frequency (in Hz)
             p.start(dc[sid-8])
-            print "IN SIP_3.PY -> SPEED ", 1, " --> ","frequency =", frequency[sid-8], "// dc =", dc[sid-8]
+            print "IN SIP_3.PY -> STATION ", sid, " --> ","frequency =", frequency[sid-8], "// dc =", dc[sid-8]
             time_on = time_on-0.1
             time.sleep(0.1)
             if time_on <= 0.1:
                 try:
-                    p.stop()
-                    print "p.stop() EXECUTED"
+                    p.ChangeDutyCycle(0)
                     time.sleep(0.1)
+                    p.stop()
+                    #print "p.stop() EXECUTED"
+                    print "p.ChangeDutyCycle(0) EXECUTED"
+                    time.sleep(0.5)
                     break
                 except:
                     print ValueError
