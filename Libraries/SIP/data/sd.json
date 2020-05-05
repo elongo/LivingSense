@@ -15,7 +15,7 @@
     ], 
     "lang": "en_US", 
     "lg": 0, 
-    "loc": "", 
+    "loc": "Cairo, Egypt", 
     "lr": 100, 
     "mas": 0, 
     "mm": 0, 
@@ -28,7 +28,7 @@
     "name": "SewTree_System_1", 
     "nbrd": 2, 
     "nopts": 13, 
-    "nprogs": 1, 
+    "nprogs": 3, 
     "nst": 16, 
     "password": "5b2f7b5d0437e3f3ee11f20530b14bca2006b9b7", 
     "pigpio": 0, 
@@ -41,7 +41,7 @@
     "rst": 0, 
     "salt": "I7H(ot/^4/a1S-z:cK[E0&8kvPdb>po*0P+@Z7=s6p@=&@MO8][.8kmI|GAOImcD", 
     "sdt": 0, 
-    "seq": 1, 
+    "seq": 0, 
     "show": [
         63, 
         7

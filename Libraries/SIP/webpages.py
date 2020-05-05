@@ -7,12 +7,21 @@ import datetime
 import web
 import io
 import ast
+import thread
 
 import gv
 from helpers import *
 from gpio_pins import set_output
 from sip import template_render
+from sip_3 import FanSpeed
 from blinker import signal
+#from sip import device_off
+
+"""For turning all devices off"""
+chan_list_BOARD = (36, 29, 31, 12, 8, 11, 13, 15) #BOARD numbering
+GPIO.setup(32, GPIO.OUT)
+p = GPIO.PWM(32, 5)  # GPIO.PWM(channel, frequency (in Hz)
+fan_speed = FanSpeed()
 
 loggedin = signal('loggedin')
 def report_login():
@@ -107,6 +116,13 @@ class change_values(ProtectedPage):
         print 'qdict: ', qdict
         if 'rsn' in qdict and qdict['rsn'] == '1':
             stop_stations()
+            #STOPPING ALL STATIONS
+            GPIO.setup(chan_list_BOARD, GPIO.OUT)  # 9 Relays
+                # Set trigger to False (Low)
+            GPIO.output(chan_list_BOARD, True)
+            fan_speed.stop()
+            print "HELLO STOP"
+            time.sleep(5)
             raise web.seeother('/')
         if 'en' in qdict and qdict['en'] == '':
             qdict['en'] = '1'  # default
@@ -187,7 +203,7 @@ class change_options(ProtectedPage):
         for f in ['sdt', 'mas', 'mton', 'mtoff', 'wl', 'lr', 'tz']:
             if 'o'+f in qdict:
                 if f == 'mton'  and int(qdict['o'+f])<0: #handle values less than zero (temp fix)
-                    raise web.seeother('/vo?errorCode=mton_minus')                 
+                    raise web.seeother('/vo?errorCode=mton_minus')
                 gv.sd[f] = int(qdict['o'+f])
 
         for f in ['ipas', 'tf', 'urs', 'seq', 'rst', 'lg', 'idd', 'pigpio', 'alr']:
@@ -421,8 +437,9 @@ class change_program(ProtectedPage):
                 if gv.srvals[i]:
                     gv.srvals[i] = 0
             for i in range(len(gv.rs)):
-                if gv.rs[i][3] == pnum:
-                    gv.rs[i] = [0, 0, 0, 0]
+                if gv.rs[i][3] == pnum:stop_stations
+                device_off(sid)
+                gv.rs[i] = [0, 0, 0, 0]
         if cp[1] >= 128 and cp[2] > 1:
             dse = int(gv.now / 86400)
             ref = dse + cp[1] - 128
@@ -627,7 +644,7 @@ class water_log(ProtectedPage):
 
         web.header('Content-Type', 'text/csv')
         return data
-    
+
 class rain_sensor_state(ProtectedPage):
     """Return rain sensor state."""
     def GET(self):

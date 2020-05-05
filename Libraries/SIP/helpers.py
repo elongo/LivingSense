@@ -23,6 +23,9 @@ from web import form
 import gv
 from web.session import sha1
 
+""" CONTROL VARIBALE FOR STOPPING FAN, WHEN STOP ALL STATION RUNS """
+stop_all_devices = 0
+
 try:
     from gpio_pins import GPIO, pin_rain_sense, pin_relay
     if gv.use_pigpio:
@@ -79,7 +82,7 @@ def report_restart():
 def reboot(wait=1, block=False):
     """
     Reboots the Raspberry Pi from a new thread.
-    
+
     @type wait: int
     @param wait: length of time to wait before rebooting
     @type block: bool
@@ -108,7 +111,7 @@ def reboot(wait=1, block=False):
 def poweroff(wait=1, block=False):
     """
     Powers off the Raspberry Pi from a new thread.
-    
+
     @type wait: int or float
     @param wait: number of seconds to wait before rebooting
     @type block: bool
@@ -137,7 +140,7 @@ def poweroff(wait=1, block=False):
 def restart(wait=1, block=False):
     """
     Restarts the software from a new thread.
-    
+
     @type wait: int
     @param wait: length of time to wait before rebooting
     @type block: bool
@@ -168,7 +171,7 @@ def restart(wait=1, block=False):
 def uptime():
     """
     Returns UpTime for RPi
-    
+
     @rtype: String
     @return: Length of time System has been running.
     """
@@ -220,9 +223,9 @@ def mkdir_p(path):
 def check_rain():
     """
     Checks status of an installed rain sensor.
-    
+
     Handles normally open and normally closed rain sensors
-    
+
     Sets gv.sd['rs'] to 1 if rain is detected otherwise 0.
     """
 
@@ -274,10 +277,10 @@ def clear_mm():
 def plugin_adjustment():
     """
     Sums irrigation time (water level) adjustments from multiple plugins.
-    
-    The adjustment value output from a plugin must be 
+
+    The adjustment value output from a plugin must be
     a unique element in the gv.sd dictionary with a key starting with 'wl_'
-    
+
     @rtype:   float
     @return:  Total irrigation time adjustments for all active plugins
     """
@@ -290,9 +293,9 @@ def get_cpu_temp(unit=None):
     """
     Reads and returns the temperature of the CPU if available.
     If unit is F, temperature is returned as Fahrenheit otherwise Celsius.
-    
+
     @type unit: character
-    @param unit: F or C        
+    @param unit: F or C
     @rtype:   string
     @return:  CPU temperature
     """
@@ -322,11 +325,11 @@ def get_cpu_temp(unit=None):
 def timestr(t):
     """
     Convert duration in seconds to string in the form mm:ss.
-      
+
     @type  t: int
     @param t: duration in seconds
     @rtype:   string
-    @return:  duration as "mm:ss"   
+    @return:  duration as "mm:ss"
     """
     return str((t / 60 >> 0) / 10 >> 0) + str((t / 60 >> 0) % 10) + ":" + str((t % 60 >> 0) / 10 >> 0) + str(
         (t % 60 >> 0) % 10)
@@ -335,8 +338,8 @@ def timestr(t):
 def log_run():
     """
     Add run data to json log file - most recent first.
-    
-    If a record limit is specified (gv.sd['lr']) the number of records is truncated.  
+
+    If a record limit is specified (gv.sd['lr']) the number of records is truncated.
     """
 
     if gv.sd['lg']:
@@ -485,7 +488,7 @@ def stop_stations():
 
 def read_log():
     """
-    
+
     """
     result = []
     try:
@@ -505,8 +508,8 @@ def read_log():
 def jsave(data, fname):
     """
     Save data to a json file.
-    
-    
+
+
     """
     with open('./data/' + fname + '.json', 'w') as f:
         json.dump(data, f, indent=4, sort_keys=True)
@@ -516,9 +519,9 @@ def station_names():
     """
     Load station names from /data/stations.json file if it exists
     otherwise create file with defaults.
-    
+
     Return station names as a list.
-    
+
     """
     try:
         with open('./data/snames.json', 'r') as snf:
@@ -533,7 +536,7 @@ def load_programs():
     """
     Load program data into memory from /data/programs.json file if it exists.
     otherwise create an empty programs data list (gv.pd).
-    
+
     """
     try:
         with open('./data/programs.json', 'r') as pf:
@@ -548,7 +551,7 @@ def load_programs():
 def password_salt():
     """
     Generate random number for use as salt for password encryption
-    
+
     @rtype: string
     @return: random value as 64 byte string.
     """
@@ -558,11 +561,11 @@ def password_salt():
 def password_hash(password, salt):
     """
     Generate password hash using sha-1.
-    
+
     @type: string
     @param param: password
     @type param: string
-    @param: salt 
+    @param: salt
     """
     return sha1(password + salt).hexdigest()
 
@@ -611,8 +614,8 @@ signin_form = form.Form(
 def get_input(qdict, key, default=None, cast=None):
     """
     Checks data returned from a UI web page.
-    
-    
+
+
     """
     result = default
     if key in qdict:

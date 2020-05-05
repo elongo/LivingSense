@@ -8,7 +8,7 @@ import subprocess
 import json
 import ast
 import time
-import thread
+import threading
 from calendar import timegm
 import sys
 import RPi.GPIO as GPIO
@@ -63,31 +63,56 @@ p = GPIO.PWM(32, frequency)  # GPIO.PWM(channel, frequency (in Hz)
 gv.restarted = 1
 
 """FAN_THREAD FUNCTION (SSR/PWM) """
-def fan_speed(sid):
-    try:
-        time_on = gv.rs[sid][2] #gv.rs[sid][2] is the duration given in the UI (see rd from gv.py)
-        while 1:
-            p.start(dc[sid-8])
-            print "IN SIP_3.PY -> STATION ", sid, " --> ","frequency =", frequency, "// dc =", dc[sid-8]
-            time_on = time_on-0.1
-            time.sleep(0.1)
-            if time_on <= 0.1:
-                try:
-                    p.ChangeDutyCycle(0)
-                    time.sleep(0.1)
-                    p.stop()
-                    print "p.ChangeDutyCycle(0) EXECUTED"
-                    print "p.stop EXECUTED"
-                    time.sleep(0.1)
-                    break
-                except:
-                    print ValueError
-            print "time_on = ", time_on
+class FanSpeed(threading.Thread):
 
-    except:
-        print "ERROR: FAN COULDN'T START"
-        print ValueError
-        pass
+    # Thread class with a _stop() method.
+    # The thread itself has to check
+    # regularly for the stopped() condition.
+
+    def __init__(self):
+        super(FanSpeed, self).__init__()
+        self._stop = threading.Event()
+
+    # function using _stop function
+    def stop(self):
+        self._stop.set()
+        p.ChangeDutyCycle(0)
+        time.sleep(0.1)
+        p.stop()
+        return
+
+    def stopped(self):
+        return self._stop.isSet()
+
+    def run(self):
+        while True:
+            if self.stopped():
+                return
+            try:
+                time_on = gv.rs[sid][2] #gv.rs[sid][2] is the duration given in the UI (see rd from gv.py)
+                p.start(dc[sid-8])
+                print "IN SIP_3.PY -> STATION ", sid, " --> ","frequency =", frequency, "// dc =", dc[sid-8]
+                time_on = time_on-0.1
+                time.sleep(0.1)
+                if time_on <= 0.1:
+                    try:
+                        p.ChangeDutyCycle(0)
+                        time.sleep(0.1)
+                        p.stop()
+                        print "p.ChangeDutyCycle(0) EXECUTED"
+                        print "p.stop EXECUTED"
+                        time.sleep(0.1)
+                        break
+                    except:
+                        print ValueError
+                print "time_on = ", time_on
+
+            except:
+                print "ERROR: FAN COULDN'T START"
+                print ValueError
+                pass
+            print("fan_speed threading, run()")
+            time.sleep(1)
 
 """ ON/OFF DEVICES - MECHANICAL RELAYS """
 def device_on(sid):
@@ -98,7 +123,9 @@ def device_on(sid):
             time.sleep(0.1)
         elif sid in range(8,11): # FAN_LOW
             try:
-                thread.start_new_thread(fan_speed, (sid, ))
+                t = FanSpeed()
+                #t = threading.Thread(target=fan_speed, args=(sid,))
+                t.start()
             except ValueError as valerr:
                 print valerr
                 pass
@@ -206,6 +233,7 @@ def timing_loop():
                             if gv.sd['mas'] - 1 != sid:  # if not master
                                 gv.srvals[sid] = 1  # station is turned on
                                 set_output()
+                                device_on(sid)
                                 gv.sbits[b] |= 1 << s  # Set display to on
                                 gv.ps[sid][0] = gv.rs[sid][3]
                                 gv.ps[sid][1] = gv.rs[sid][2]
@@ -214,7 +242,6 @@ def timing_loop():
                                     gv.rs[masid][0] = gv.rs[sid][0] + gv.sd['mton']
                                     gv.rs[masid][1] = gv.rs[sid][1] + gv.sd['mtoff']
                                     gv.rs[masid][3] = gv.rs[sid][3]
-                                device_on(sid)
                             elif gv.sd['mas'] == sid + 1:
                                 gv.sbits[b] |= 1 << sid
                                 gv.srvals[masid] = 1
@@ -225,6 +252,8 @@ def timing_loop():
                 if gv.rs[s][1]:  # if any station is scheduled
                     program_running = True
                     gv.pon = gv.rs[s][3]  # Store number of running program
+                    set_output()
+                    device_on(sid)
                     break
                 program_running = False
                 set_output()
@@ -334,7 +363,8 @@ if __name__ == '__main__':
     except Exception:
         pass
 
-    thread.start_new_thread(timing_loop, ())
+    t2 = threading.Thread(target=timing_loop, args=())
+    t2.start()
 
     if gv.use_gpio_pins:
         set_output()

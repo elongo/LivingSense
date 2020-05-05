@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+""" RF Libraries """
+#import tRF2
+
 """ SIP Libraries """
+
 import i18n
 
 import subprocess
@@ -11,7 +15,6 @@ import time
 import thread
 from calendar import timegm
 import sys
-import RPi.GPIO as GPIO
 sys.path.append('./plugins')
 
 import web  # the Web.py module. See webpy.org (Enables the Python SIP web interface)
@@ -37,91 +40,20 @@ from ReverseProxied import ReverseProxied
 # if gv.use_gpio_pins is False (which is set in relay board plugin.
 # set_output()
 
-""" GPIO setup """
-GPIO.setwarnings(False)
-GPIO.cleanup()
-GPIO.setmode(GPIO.BOARD)
-global chan_list
-# Channel list for setting up all GPIO at the same time
-chan_list_BCM = (16, 5, 6, 18, 14, 17, 27, 22, 25) #BCM numbering
-chan_list_BOARD = (36, 29, 31, 12, 8, 11, 13, 15) #BOARD numbering
+""" RF variables """
+"""
+RFoutlet = 0
+#BELONGS TO b2 RF OUTLET
+a_on = '1011111111101110101011101'
+a_off = '1011111111101110101010111'
 
-# Set pins as output and input Mechanical Relays (1-8)
-for i in range(8):
-    GPIO.setup(chan_list_BOARD[i], GPIO.OUT)  # 9 Relays
-    # Set trigger to False (Low)
-    GPIO.output(chan_list_BOARD[i], True)
-
-#GPIO setup for SSR (Optic relay -> Fan Control)
-sid = 8
-frequency = 5 #List for testing different frequencies (the lower the frequency, the higher the speed)
-dc = (50, 70, 100) #List for testing different duty cycles (the higher the duty cycle, the higher the speed)
-GPIO.setup(32, GPIO.OUT)
-p = GPIO.PWM(32, frequency)  # GPIO.PWM(channel, frequency (in Hz)
+#RF CODE FOR TESTING (BELONGS TO a1 RF OUTLET)
+#a_on = '1111111111111010101011101'
+#a_off = '1111111111111010101010111'
+"""
 
 """ SIP variables """
 gv.restarted = 1
-
-"""FAN_THREAD FUNCTION (SSR/PWM) """
-def fan_speed(sid):
-    try:
-        time_on = gv.rs[sid][2] #gv.rs[sid][2] is the duration given in the UI (see rd from gv.py)
-        while 1:
-            p.start(dc[sid-8])
-            print "IN SIP_3.PY -> STATION ", sid, " --> ","frequency =", frequency, "// dc =", dc[sid-8]
-            time_on = time_on-0.1
-            time.sleep(0.1)
-            if time_on <= 0.1:
-                try:
-                    p.ChangeDutyCycle(0)
-                    time.sleep(0.1)
-                    p.stop()
-                    print "p.ChangeDutyCycle(0) EXECUTED"
-                    print "p.stop EXECUTED"
-                    time.sleep(0.1)
-                    break
-                except:
-                    print ValueError
-            print "time_on = ", time_on
-
-    except:
-        print "ERROR: FAN COULDN'T START"
-        print ValueError
-        pass
-
-""" ON/OFF DEVICES - MECHANICAL RELAYS """
-def device_on(sid):
-    try:
-        if sid in range(0,7):
-            GPIO.output(chan_list_BOARD[sid], False)
-            print "RELAY ", sid, " IS ON"
-            time.sleep(0.1)
-        elif sid in range(8,11): # FAN_LOW
-            try:
-                thread.start_new_thread(fan_speed, (sid, ))
-            except ValueError as valerr:
-                print valerr
-                pass
-                time.sleep(0.1)
-        else:
-            print "NO DEVICES WERE TURNED ON"
-    except ValueError as valerr:
-        print "Problem turning ON station ", sid, "BECAUSE OF", valerr
-        time.sleep(0.1)
-
-def device_off(sid):
-    try:
-        if sid in range(0,7):
-            GPIO.output(chan_list_BOARD[sid], True)
-            print "RELAY ", sid, "IS OFF"
-            time.sleep(0.1)
-        else:
-            print "NO DEVICES WERE TURNED OFF"
-    except ValueError as valerr:
-        print "Problem turning OFF station  ---> ", sid, "BECAUSE OF", valerr
-        pass
-        time.sleep(0.1)
-
 
 def timing_loop():
     """ ***** Main timing algorithm. Runs in a separate thread.***** """
@@ -178,7 +110,6 @@ def timing_loop():
                                             gv.rs[sid][3] = i + 1  # store program number
                                             gv.ps[sid][0] = i + 1  # store program number for display
                                             gv.ps[sid][1] = duration
-                        return duration
                         schedule_stations(p[7:7 + gv.sd['nbrd']])  # turns on gv.sd['bsy']
 
         if gv.sd['bsy']:
@@ -190,7 +121,8 @@ def timing_loop():
                             gv.srvals[sid] = 0
                             set_output()
                             gv.sbits[b] &= ~(1 << s)
-                            device_off(sid)
+                            #tRF2.transmit_code(a_off) # trun off pump by Radio Frequency
+                            print "1. RFout = 0"
                             if gv.sd['mas'] - 1 != sid:  # if not master, fill out log
                                 gv.ps[sid] = [0, 0]
                                 gv.lrun[0] = sid
@@ -209,17 +141,20 @@ def timing_loop():
                                 gv.sbits[b] |= 1 << s  # Set display to on
                                 gv.ps[sid][0] = gv.rs[sid][3]
                                 gv.ps[sid][1] = gv.rs[sid][2]
+                                #print "2. RFout = 1"
+                                #tRF2.transmit_code(a_on) # trun on pump by Radio Frequency
                                 if gv.sd['mas'] and gv.sd['mo'][b] & 1 << (s - (s / 8) * 80):  # Master settings
                                     masid = gv.sd['mas'] - 1  # master index
                                     gv.rs[masid][0] = gv.rs[sid][0] + gv.sd['mton']
                                     gv.rs[masid][1] = gv.rs[sid][1] + gv.sd['mtoff']
                                     gv.rs[masid][3] = gv.rs[sid][3]
-                                device_on(sid)
                             elif gv.sd['mas'] == sid + 1:
                                 gv.sbits[b] |= 1 << sid
                                 gv.srvals[masid] = 1
                                 set_output()
-                                device_on(sid)
+                                print "3. RFout = 1"
+                                #tRF2.transmit_code(a_on) # trun on pump by Radio Frequency
+
 
             for s in range(gv.sd['nst']):
                 if gv.rs[s][1]:  # if any station is scheduled
@@ -227,25 +162,29 @@ def timing_loop():
                     gv.pon = gv.rs[s][3]  # Store number of running program
                     break
                 program_running = False
-                set_output()
-                device_off(sid)
+                #tRF2.transmit_code(a_off)
                 gv.pon = None
 
             if program_running:
                 if gv.sd['urs'] and gv.sd['rs']:  #  Stop stations if use rain sensor and rain detected.
                     stop_onrain()  # Clear schedule for stations that do not ignore rain.
+                    ##tRF2.transmit_code(a_off)
                 for idx in range(len(gv.rs)):  # loop through program schedule (gv.ps)
                     if gv.rs[idx][2] == 0:  # skip stations with no duration
                         continue
                     if gv.srvals[idx]:  # If station is on, decrement time remaining display
                         gv.ps[idx][1] -= 1
+                        ##tRF2.transmit_code(a_off)
 
             if not program_running:
                 gv.srvals = [0] * (gv.sd['nst'])
-                device_off(sid)
+                #tRF2.transmit_code(a_off) # trun off pump by Radio Frequency
+                print "RFout = 0"
                 set_output()
                 gv.sbits = [0] * (gv.sd['nbrd'] + 1)
                 gv.ps = []
+                print "4. RFout = 0"
+                #tRF2.transmit_code(a_off)
                 for i in range(gv.sd['nst']):
                     gv.ps.append([0, 0])
                 gv.rs = []
@@ -266,9 +205,11 @@ def timing_loop():
                             and gv.sd['mo'][octet] & 1 << s #  station activates master
                             ):
                             stayon = 1
+                            #tRF2.transmit_code(a_off) # trun off all stations pump by Radio Frequency
                             break
                 if not stayon:
                     gv.rs[gv.sd['mas'] - 1][1] = gv.now  # set master to turn off next cycle
+                    #tRF2.transmit_code(a_off) # trun off all stations pump by Radio Frequency
 
         if gv.sd['urs']:
             check_rain()  # in helpers.py

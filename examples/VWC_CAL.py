@@ -3,6 +3,7 @@
 # Author: Tony DiCola
 # License: Public Domain
 import time
+import math
 
 # Import the ADS1x15 module.
 import Adafruit_ADS1x15
@@ -37,8 +38,8 @@ GAIN = 1
 
 print('Reading ADS1x15 values, press Ctrl-C to quit...')
 # Print nice channel column headers.
-print('| {0:>6} | {1:>6} | {2:>6} | {3:>6} |'.format(*range(4)))
-print('-' * 37)
+#print('| {0:>6} | {1:>6} | {2:>6} | {3:>6} |'.format(*range(4)))
+#print('-' * 37)
 
 
 def vwc():
@@ -49,20 +50,22 @@ def vwc():
     sensorsRead = 300
 
       # Read all the ADC channel values in a list.
-    values = [0]*2
-    for i in range(2):
+    values = [0]*4
+    for i in range(4):
           # Read the specified ADC channel using the previously set gain value.
           values[i] = adc.read_adc(i, gain=GAIN)
-          Sensor =  (-0.0081*values[i]) + 160.25
-          print "Sensor", i , " = ", Sensor
+          #Sensor =  (-0.0081*values[i]) + 160.25
+          #Sensor = 4363**(-0.000417*values[i])
+          Sensor = 4363*math.exp(-0.000417*values[i])
+          #print "Sensor", i , " = ", Sensor
           #print "values =",values
     return Sensor
 
 # Main loop.
 while True:
     # Read all the ADC channel values in a list.
-    values = [0]*2
-    for i in range(2):
+    values = [0]*4
+    for i in range(4):
         # Read the specified ADC channel using the previously set gain value.
         values[i] = adc.read_adc(i, gain=GAIN)
         # Note you can also pass in an optional data_rate parameter that controls
@@ -72,11 +75,17 @@ while True:
         #values[i] = adc.read_adc(i, gain=GAIN, data_rate=128)
         # Each value will be a 12 or 16 bit signed integer value depending on the
         # ADC (ADS1015 = 12-bit, ADS1115 = 16-bit).
+        #vwc = 4363**(-0.000417*values[i])
+        vwc = 4363*math.exp(-0.000417*values[i])
+        Sensor.append(vwc)
     # Print the ADC values.
-    #print('| {0:>6} | {1:>6} | {2:>6} = | {3:>6} |'.format(*values))
-    print('| {0:>6} | {1:>6} |'.format(*values))
+    print('{0:>6},  {1:>6}, {2:>6}, {3:>6}'.format(*values))
+    #print Sensor
+    del Sensor[:]
+    #print('{0:>6},  {1:>6}, {2:>6}'.format(*values))
+    #print('| {0:>6} | {1:>6} |'.format(*values))
     # Pause for half a second.
 
-    vwc()
+    #vwc()
 
-    time.sleep(5)
+    time.sleep(2)

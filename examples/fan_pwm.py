@@ -12,9 +12,9 @@ timer_steps = interval/4
 try:
     while 1:
         for i in range(3):
-            p = GPIO.PWM(32, frequency[i])  # GPIO.PWM(channel, frequency (in Hz)
+            p = GPIO.PWM(32, frequency[2])  # GPIO.PWM(channel, frequency (in Hz)
             p.start(0)
-            p.ChangeDutyCycle(dc[i])
+            p.ChangeDutyCycle(dc[2])
             print "SPEED ", i+1, " --> ","frequency =", frequency[i], "// dc =", dc[i]
             # TIMER
             for remaining in range(interval, 0, -(timer_steps)):
@@ -22,7 +22,6 @@ try:
                 sys.stdout.write("{:2d} seconds remaining for next speed.  \n".format(remaining))
                 sys.stdout.flush()
                 time.sleep(timer_steps)
-
 except KeyboardInterrupt:
     pass
 
