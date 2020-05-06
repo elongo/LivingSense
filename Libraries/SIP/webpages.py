@@ -13,16 +13,15 @@ import gv
 from helpers import *
 from gpio_pins import set_output
 from sip import template_render
-from sip_3 import FanSpeed
+#from sip_3 import FanSpeed
 from blinker import signal
-#from sip import device_off
 
 """For turning all devices off"""
+""""
 chan_list_BOARD = (36, 29, 31, 12, 8, 11, 13, 15) #BOARD numbering
-GPIO.setup(32, GPIO.OUT)
-p = GPIO.PWM(32, 5)  # GPIO.PWM(channel, frequency (in Hz)
+GPIO.setup(chan_list_BOARD, GPIO.OUT)  # 9 Relays
 fan_speed = FanSpeed()
-
+"""
 loggedin = signal('loggedin')
 def report_login():
     loggedin.send()
@@ -89,7 +88,11 @@ class login(WebPage):
 class logout(WebPage):
     def GET(self):
         web.config._session.user = 'anonymous'
-        raise web.seeother('/')
+        raise web.seeother('/')# Addition by elongo: for turning off mechanical relays and SSR.
+    GPIO.output(chan_list_BOARD, True)
+    fan_speed.stop()
+    time.sleep(0.1)
+    print "HELLO STOP"
 
 class sw_restart(ProtectedPage):
     """Restart system."""
@@ -117,12 +120,13 @@ class change_values(ProtectedPage):
         if 'rsn' in qdict and qdict['rsn'] == '1':
             stop_stations()
             #STOPPING ALL STATIONS
-            GPIO.setup(chan_list_BOARD, GPIO.OUT)  # 9 Relays
-                # Set trigger to False (Low)
+            # Set trigger to False (Low)
+            """
             GPIO.output(chan_list_BOARD, True)
             fan_speed.stop()
+            time.sleep(0.1)
             print "HELLO STOP"
-            time.sleep(5)
+            """
             raise web.seeother('/')
         if 'en' in qdict and qdict['en'] == '':
             qdict['en'] = '1'  # default
@@ -444,7 +448,7 @@ class change_program(ProtectedPage):
             dse = int(gv.now / 86400)
             ref = dse + cp[1] - 128
             cp[1] = (ref % cp[2]) + 128
-        if qdict['pid'] == '-1':  # add new program
+        if qstop_sdict['pid'] == '-1':  # add new program
             gv.pd.append(cp)
         else:
             gv.pd[int(qdict['pid'])] = cp  # replace program
@@ -458,7 +462,7 @@ class delete_program(ProtectedPage):
     """Delete one or all existing program(s)."""
 
     def GET(self):
-        qdict = web.input()
+        qdicstop_st = web.input()
         if qdict['pid'] == '-1':
             del gv.pd[:]
             jsave(gv.pd, 'programs')
@@ -508,6 +512,14 @@ class run_now(ProtectedPage):
 #        if not p[0]:  # if program is disabled
 #           Sraise web.seeother('/vp')
         stop_stations()
+        #STOPPING ALL STATIONS
+        # Set trigger to False (Low)
+        """"
+        GPIO.output(chan_list_BOARD, True)
+        fan_speed.stop()
+        time.sleep(0.1)
+        print "HELLO STOP"
+        """
         extra_adjustment = plugin_adjustment()
         sid = -1
         for b in range(gv.sd['nbrd']):  # check each station

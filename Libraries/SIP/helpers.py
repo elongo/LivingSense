@@ -4,7 +4,7 @@
 import i18n
 
 import datetime
-from threading import Thread
+import threading
 import os
 import errno
 import random
@@ -16,15 +16,130 @@ import codecs
 import ast
 from web.webapi import seeother
 from blinker import signal
-
+import RPi.GPIO as GPIO
+#from sip_3 import FanSpeed
 import web
 from web import form
-
 import gv
 from web.session import sha1
 
-""" CONTROL VARIBALE FOR STOPPING FAN, WHEN STOP ALL STATION RUNS """
-stop_all_devices = 0
+"""For turning all devices off"""
+
+"""chan_list_BOARD = (36, 29, 31, 12, 8, 11, 13, 15) #BOARD numbering
+GPIO.setup(chan_list_BOARD, GPIO.OUT)  # 9 Relays
+fan_speed = FanSpeed()
+"""
+
+""" GPIO setup """
+GPIO.setwarnings(False)
+GPIO.cleanup()
+GPIO.setmode(GPIO.BOARD)
+global chan_list
+# Channel list for setting up all GPIO at the same time
+chan_list_BCM = (16, 5, 6, 18, 14, 17, 27, 22, 25) #BCM numbering
+chan_list_BOARD = (36, 29, 31, 12, 8, 11, 13, 15) #BOARD numbering
+
+# Set pins as output and input Mechanical Relays (1-8)
+for i in range(8):
+    GPIO.setup(chan_list_BOARD[i], GPIO.OUT)  # 9 Relays
+    # Set trigger to False (Low)
+    GPIO.output(chan_list_BOARD[i], True)
+
+#GPIO setup for SSR (Optic relay -> Fan Control)
+sid = 8
+frequency = 5 #List for testing different frequencies (the lower the frequency, the higher the speed)
+dc = (50, 70, 100) #List for testing different duty cycles (the higher the duty cycle, the higher the speed)
+GPIO.setup(32, GPIO.OUT)
+p = GPIO.PWM(32, frequency)  # GPIO.PWM(channel, frequency (in Hz)
+
+""" SIP variables """
+gv.restarted = 1
+
+"""FAN_THREAD FUNCTION (SSR/PWM) """
+class FanSpeed(threading.Thread):
+    # Thread class with a _stop() method.
+    # The thread itself has to check
+    # regularly for the stopped() condition.
+    def __init__(self):
+        super(FanSpeed, self).__init__()
+        self._stop = threading.Event()
+
+    # function using _stop function
+    def stop(self):
+        self._stop.set()
+        p.stop() # stops PWM
+        time.sleep(0.1)
+        return
+
+    def stopped(self):
+        return self._stop.isSet()
+
+    def run(self):
+        while True:
+            #if self.stopped():
+            #    return
+            try:
+                time_on = gv.rs[sid][2] #gv.rs[sid][2] is the duration given in the UI (see rd from gv.py)
+                p.start(dc[sid-8])
+                print "IN SIP_3.PY -> STATION ", sid, " --> ","frequency =", frequency, "// dc =", dc[sid-8]
+                time_on = time_on-0.1
+                time.sleep(0.1)
+                if time_on <= 0.1:
+                    try:
+                        p.ChangeDutyCycle(0)
+                        time.sleep(0.1)
+                        p.stop()
+                        print "p.ChangeDutyCycle(0) EXECUTED"
+                        print "p.stop EXECUTED"
+                        time.sleep(0.1)
+                        break
+                    except:
+                        print ValueError
+                print "time_on = ", time_on
+
+            except:
+                print "ERROR: FAN COULDN'T START"
+                print ValueError
+                pass
+            print("fan_speed threading, run()")
+            time.sleep(0.1)
+
+fan_speed = FanSpeed()
+
+""" ON/OFF DEVICES - MECHANICAL RELAYS """
+def device_on(sid):
+    try:
+        if sid in range(0,7):
+            GPIO.output(chan_list_BOARD[sid], False)
+            print "RELAY ", sid, " IS ON"
+            time.sleep(0.1)
+        elif sid in range(8,11): # FAN_LOW
+            try:
+                t = FanSpeed()
+                #t = threading.Thread(target=fan_speed, args=(sid,))
+                t.start()
+            except ValueError as valerr:
+                print valerr
+                pass
+                time.sleep(0.1)
+        else:
+            print "NO DEVICES WERE TURNED ON"
+    except ValueError as valerr:
+        print "Problem turning ON station ", sid, "BECAUSE OF", valerr
+        time.sleep(0.1)
+
+def device_off(sid):
+    try:
+        if sid in range(0,7):
+            GPIO.output(chan_list_BOARD[sid], True)
+            print "RELAY ", sid, "IS OFF"
+            time.sleep(0.1)
+        else:
+            print "NO DEVICES WERE TURNED OFF"
+    except ValueError as valerr:
+        print "Problem turning OFF station  ---> ", sid, "BECAUSE OF", valerr
+        pass
+        time.sleep(0.1)
 
 try:
     from gpio_pins import GPIO, pin_rain_sense, pin_relay
@@ -45,7 +160,7 @@ except ImportError:
         sys.exit()
 
 
-##############################
+##############################from sip_3 import FanSpeed
 #### Function Definitions ####
 
 station_completed = signal('station_completed')
@@ -483,6 +598,11 @@ def stop_stations():
     for i in range(gv.sd['nst']):
         gv.rs.append([0, 0, 0, 0])
     gv.sd['bsy'] = 0
+    # TURNS MECHANICAL AND SOLID STATE RELAYS OFF
+    GPIO.output(chan_list_BOARD, True)
+    fan_speed.stop()
+    time.sleep(0.1)
+    print "HELLO STOP"
     return
 
 
