@@ -23,13 +23,6 @@ from web import form
 import gv
 from web.session import sha1
 
-"""For turning all devices off"""
-
-"""chan_list_BOARD = (36, 29, 31, 12, 8, 11, 13, 15) #BOARD numbering
-GPIO.setup(chan_list_BOARD, GPIO.OUT)  # 9 Relays
-fan_speed = FanSpeed()
-"""
-
 """ GPIO setup """
 GPIO.setwarnings(False)
 GPIO.cleanup()

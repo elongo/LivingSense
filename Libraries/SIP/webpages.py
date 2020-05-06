@@ -121,12 +121,6 @@ class change_values(ProtectedPage):
             stop_stations()
             #STOPPING ALL STATIONS
             # Set trigger to False (Low)
-            """
-            GPIO.output(chan_list_BOARD, True)
-            fan_speed.stop()
-            time.sleep(0.1)
-            print "HELLO STOP"
-            """
             raise web.seeother('/')
         if 'en' in qdict and qdict['en'] == '':
             qdict['en'] = '1'  # default
@@ -512,14 +506,6 @@ class run_now(ProtectedPage):
 #        if not p[0]:  # if program is disabled
 #           Sraise web.seeother('/vp')
         stop_stations()
-        #STOPPING ALL STATIONS
-        # Set trigger to False (Low)
-        """"
-        GPIO.output(chan_list_BOARD, True)
-        fan_speed.stop()
-        time.sleep(0.1)
-        print "HELLO STOP"
-        """
         extra_adjustment = plugin_adjustment()
         sid = -1
         for b in range(gv.sd['nbrd']):  # check each station
