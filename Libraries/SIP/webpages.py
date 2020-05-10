@@ -438,7 +438,7 @@ class change_program(ProtectedPage):
             dse = int(gv.now / 86400)
             ref = dse + cp[1] - 128
             cp[1] = (ref % cp[2]) + 128
-        if qstop_sdict['pid'] == '-1':  # add new program
+        if qdict['pid'] == '-1':  # add new program
             gv.pd.append(cp)
         else:
             gv.pd[int(qdict['pid'])] = cp  # replace program
