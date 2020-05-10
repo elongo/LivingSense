@@ -4,6 +4,7 @@
 import i18n
 
 import datetime
+import time
 import threading
 import os
 import errno
@@ -39,9 +40,11 @@ for i in range(8):
     GPIO.output(chan_list_BOARD[i], True)
 
 #GPIO setup for SSR (Optic relay -> Fan Control)
-sid = 8
+speed = None
+time_on = None
 frequency = 5 #List for testing different frequencies (the lower the frequency, the higher the speed)
-dc = (50, 70, 100) #List for testing different duty cycles (the higher the duty cycle, the higher the speed)
+#dc = (50, 70, 100) #List for testing different duty cycles (the higher the duty cycle, the higher the speed)
+dc = {"low_speed": 50, "mid_speed":70, "high_speed":100} # Ducty Cycle Dictionary, with three speeds.
 GPIO.setup(32, GPIO.OUT)
 p = GPIO.PWM(32, frequency)  # GPIO.PWM(channel, frequency (in Hz)
 
@@ -53,82 +56,147 @@ class FanSpeed(threading.Thread):
     # Thread class with a _stop() method.
     # The thread itself has to check
     # regularly for the stopped() condition.
-    def __init__(self):
+    print "HELLO CLASS FANSPEED"
+    #time.sleep(5)
+    def __init__(self, args=(speed, time_on)):
+        print "HELLO init FANSPEED"
         super(FanSpeed, self).__init__()
         self._stop = threading.Event()
+        self.speed = speed
+        self.time_on = time_on
+        print "SPEED = ", self.speed, " time_on IN INIT = ", self.time_on
+        print "SPEED = ", self.speed, " time_on IN INIT = ", self.time_on
+        print "SPEED = ", self.speed, " time_on IN INIT = ", self.time_on
 
     # function using _stop function
     def stop(self):
         self._stop.set()
         p.stop() # stops PWM
-        time.sleep(0.1)
+        print "p.stop in stop(self) EXECUTED BY END OF THREEEEAAAAAAAAAAAAD"
+        time.sleep(0.5)
         return
 
     def stopped(self):
+        print "STOPPED(SELF)"
         return self._stop.isSet()
 
     def run(self):
+        fan_time = time_on
+        print "TIME_ON IN RUN", time_on
+        print "TIME_ON IN RUN", time_on
+        print "TIME_ON IN RUN", time_on
         while True:
-            #if self.stopped():
-            #    return
             try:
-                time_on = gv.rs[sid][2] #gv.rs[sid][2] is the duration given in the UI (see rd from gv.py)
-                p.start(dc[sid-8])
-                print "IN SIP_3.PY -> STATION ", sid, " --> ","frequency =", frequency, "// dc =", dc[sid-8]
-                time_on = time_on-0.1
-                time.sleep(0.1)
-                if time_on <= 0.1:
+                if self.stopped():
+                    return
+                p.start(speed)
+                print "SPEED =", speed
+                print "SPEED =", speed
+                print "SPEED =", speed
+                if fan_time <= 0:
                     try:
                         p.ChangeDutyCycle(0)
                         time.sleep(0.1)
                         p.stop()
-                        print "p.ChangeDutyCycle(0) EXECUTED"
-                        print "p.stop EXECUTED"
+                        print "p.stop EXECUTED BY TIME_ON OUT"
                         time.sleep(0.1)
                         break
                     except:
                         print ValueError
-                print "time_on = ", time_on
-
+                time.sleep(1)
+                fan_time -= 1
+                print "NEEEEEEEEEEEEEEEW_TIME IN RUN= ", fan_time
+                print "NEEEEEEEEEEEEEEEW_TIME IN RUN= ", fan_time
+                print "NEEEEEEEEEEEEEEEW_TIME IN RUN= ", fan_time
             except:
                 print "ERROR: FAN COULDN'T START"
                 print ValueError
-                pass
-            print("fan_speed threading, run()")
-            time.sleep(0.1)
+                #pass
+            #print("fan_speed threading, run()")
 
-fan_speed = FanSpeed()
+def stop_stations():
+    """
+    Stop all running stations, clear schedules.
+    """
+    from gpio_pins import set_output
+    gv.srvals = [0] * (gv.sd['nst'])
+    set_output()
+    gv.ps = []
+    for i in range(gv.sd['nst']):
+        gv.ps.append([0, 0])
+    gv.sbits = [0] * (gv.sd['nbrd'] + 1)
+    gv.rs = []
+    for i in range(gv.sd['nst']):
+        gv.rs.append([0, 0, 0, 0])
+    gv.sd['bsy'] = 0
+    print " I AM STOP_STATIONS()"
+    # TURNS MECHANICAL AND SOLID STATE RELAYS OFF
+    GPIO.output(chan_list_BOARD, True)
+    fan_speed = FanSpeed()
+    print "FAN SPEED @ STOP_STATIONS"
+    fan_speed.start()
+    fan_speed.stop()
+    fan_speed.join()
+    print "HELLO STOP AT THE END OF STOP_STATIONS"
+    time.sleep(0.1)
+    return
 
 """ ON/OFF DEVICES - MECHANICAL RELAYS """
 def device_on(sid):
     try:
+        global speed
+        global time_on
+        #time_on = gv.rs[sid][2]
+        time_on = 10
+        print "TIME ON DEVICE ON = ", time_on
+        print "TIME ON DEVICE ON = ", time_on
+        print "TIME ON DEVICE ON = ", time_on
         if sid in range(0,7):
-            GPIO.output(chan_list_BOARD[sid], False)
-            print "RELAY ", sid, " IS ON"
-            time.sleep(0.1)
-        elif sid in range(8,11): # FAN_LOW
+            if sid in range(0,4):
+                GPIO.output(chan_list_BOARD[sid], False)
+                print "RELAY ", sid, " IS ON"
+                time.sleep(0.1)
+            elif sid in range(4,6):
+                GPIO.output(chan_list_BOARD[sid+1], False)
+                print "RELAY ", sid, " IS ON"
+                time.sleep(0.1)
+        elif sid in range(8,11): # FAN/SSR
             try:
-                t = FanSpeed()
-                #t = threading.Thread(target=fan_speed, args=(sid,))
-                t.start()
+                if sid == 8:
+                    speed = dc.get("low_speed")
+                    print "low_speed = " , speed
+                elif sid == 9:
+                    speed = dc.get("mid_speed")
+                    print "mid_speed = " , speed
+                elif sid == 10:
+                    speed = dc.get("high_speed")
+                    print "high_speed = " , speed
+                fan_speed = FanSpeed(args=(speed, time_on))
+                fan_speed.start() #starting FanSpeed thread
+                print "FAN SPEED INSIDE DEVICE ON"
             except ValueError as valerr:
                 print valerr
                 pass
-                time.sleep(0.1)
         else:
-            print "NO DEVICES WERE TURNED ON"
+            print "_____________________"
     except ValueError as valerr:
         print "Problem turning ON station ", sid, "BECAUSE OF", valerr
         time.sleep(0.1)
+    return
 
 def device_off(sid):
     try:
         if sid in range(0,7):
-            GPIO.output(chan_list_BOARD[sid], True)
-            print "RELAY ", sid, "IS OFF"
-            time.sleep(0.1)
+            if sid in range(0,4):
+                GPIO.output(chan_list_BOARD[sid], True)
+                print "RELAY ", sid, " IS ON"
+                time.sleep(0.1)
+            elif sid in range(4,6):
+                GPIO.output(chan_list_BOARD[sid+1], True)
+                print "RELAY ", sid, " IS ON"
+                time.sleep(0.1)
         else:
-            print "NO DEVICES WERE TURNED OFF"
+            print "________"
     except ValueError as valerr:
         print "Problem turning OFF station  ---> ", sid, "BECAUSE OF", valerr
         pass
@@ -190,7 +258,6 @@ def report_restart():
 def reboot(wait=1, block=False):
     """
     Reboots the Raspberry Pi from a new thread.
-
     @type wait: int
     @param wait: length of time to wait before rebooting
     @type block: bool
@@ -219,7 +286,6 @@ def reboot(wait=1, block=False):
 def poweroff(wait=1, block=False):
     """
     Powers off the Raspberry Pi from a new thread.
-
     @type wait: int or float
     @param wait: number of seconds to wait before rebooting
     @type block: bool
@@ -248,7 +314,6 @@ def poweroff(wait=1, block=False):
 def restart(wait=1, block=False):
     """
     Restarts the software from a new thread.
-
     @type wait: int
     @param wait: length of time to wait before rebooting
     @type block: bool
@@ -279,7 +344,6 @@ def restart(wait=1, block=False):
 def uptime():
     """
     Returns UpTime for RPi
-
     @rtype: String
     @return: Length of time System has been running.
     """
@@ -331,9 +395,7 @@ def mkdir_p(path):
 def check_rain():
     """
     Checks status of an installed rain sensor.
-
     Handles normally open and normally closed rain sensors
-
     Sets gv.sd['rs'] to 1 if rain is detected otherwise 0.
     """
 
@@ -385,10 +447,8 @@ def clear_mm():
 def plugin_adjustment():
     """
     Sums irrigation time (water level) adjustments from multiple plugins.
-
     The adjustment value output from a plugin must be
     a unique element in the gv.sd dictionary with a key starting with 'wl_'
-
     @rtype:   float
     @return:  Total irrigation time adjustments for all active plugins
     """
@@ -401,7 +461,6 @@ def get_cpu_temp(unit=None):
     """
     Reads and returns the temperature of the CPU if available.
     If unit is F, temperature is returned as Fahrenheit otherwise Celsius.
-
     @type unit: character
     @param unit: F or C
     @rtype:   string
@@ -433,7 +492,6 @@ def get_cpu_temp(unit=None):
 def timestr(t):
     """
     Convert duration in seconds to string in the form mm:ss.
-
     @type  t: int
     @param t: duration in seconds
     @rtype:   string
@@ -446,7 +504,6 @@ def timestr(t):
 def log_run():
     """
     Add run data to json log file - most recent first.
-
     If a record limit is specified (gv.sd['lr']) the number of records is truncated.
     """
 
@@ -576,32 +633,8 @@ def stop_onrain():
     return
 
 
-def stop_stations():
-    """
-    Stop all running stations, clear schedules.
-    """
-    from gpio_pins import set_output
-    gv.srvals = [0] * (gv.sd['nst'])
-    set_output()
-    gv.ps = []
-    for i in range(gv.sd['nst']):
-        gv.ps.append([0, 0])
-    gv.sbits = [0] * (gv.sd['nbrd'] + 1)
-    gv.rs = []
-    for i in range(gv.sd['nst']):
-        gv.rs.append([0, 0, 0, 0])
-    gv.sd['bsy'] = 0
-    # TURNS MECHANICAL AND SOLID STATE RELAYS OFF
-    GPIO.output(chan_list_BOARD, True)
-    fan_speed.stop()
-    time.sleep(0.1)
-    print "HELLO STOP"
-    return
-
-
 def read_log():
     """
-
     """
     result = []
     try:
@@ -621,8 +654,6 @@ def read_log():
 def jsave(data, fname):
     """
     Save data to a json file.
-
-
     """
     with open('./data/' + fname + '.json', 'w') as f:
         json.dump(data, f, indent=4, sort_keys=True)
@@ -632,9 +663,7 @@ def station_names():
     """
     Load station names from /data/stations.json file if it exists
     otherwise create file with defaults.
-
     Return station names as a list.
-
     """
     try:
         with open('./data/snames.json', 'r') as snf:
@@ -649,7 +678,6 @@ def load_programs():
     """
     Load program data into memory from /data/programs.json file if it exists.
     otherwise create an empty programs data list (gv.pd).
-
     """
     try:
         with open('./data/programs.json', 'r') as pf:
@@ -664,7 +692,6 @@ def load_programs():
 def password_salt():
     """
     Generate random number for use as salt for password encryption
-
     @rtype: string
     @return: random value as 64 byte string.
     """
@@ -674,7 +701,6 @@ def password_salt():
 def password_hash(password, salt):
     """
     Generate password hash using sha-1.
-
     @type: string
     @param param: password
     @type param: string
@@ -727,8 +753,6 @@ signin_form = form.Form(
 def get_input(qdict, key, default=None, cast=None):
     """
     Checks data returned from a UI web page.
-
-
     """
     result = default
     if key in qdict:

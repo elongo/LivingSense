@@ -89,10 +89,6 @@ class logout(WebPage):
     def GET(self):
         web.config._session.user = 'anonymous'
         raise web.seeother('/')# Addition by elongo: for turning off mechanical relays and SSR.
-    GPIO.output(chan_list_BOARD, True)
-    fan_speed.stop()
-    time.sleep(0.1)
-    print "HELLO STOP"
 
 class sw_restart(ProtectedPage):
     """Restart system."""

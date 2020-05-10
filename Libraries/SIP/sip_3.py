@@ -3,7 +3,6 @@
 
 """ SIP Libraries """
 import i18n
-
 import subprocess
 import json
 import ast
@@ -28,7 +27,6 @@ from helpers import (
                      jsave,
                      station_names,
                      get_rpi_revision,
-                     FanSpeed,
                      device_on,
                      device_off
                      )
@@ -43,7 +41,7 @@ from ReverseProxied import ReverseProxied
 def timing_loop():
     """ ***** Main timing algorithm. Runs in a separate thread.***** """
     try:
-        print _('Starting timing loop') + '\n'
+        print _('Starting timing LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOP') + '\n'
     except Exception:
         pass
     last_min = 0
