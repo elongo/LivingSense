@@ -57,15 +57,12 @@ class FanSpeed(threading.Thread):
     # The thread itself has to check
     # regularly for the stopped() condition.
     print "HELLO CLASS FANSPEED"
-    #time.sleep(5)
     def __init__(self, args=(speed, time_on)):
         print "HELLO init FANSPEED"
         super(FanSpeed, self).__init__()
         self._stop = threading.Event()
         self.speed = speed
         self.time_on = time_on
-        print "SPEED = ", self.speed, " time_on IN INIT = ", self.time_on
-        print "SPEED = ", self.speed, " time_on IN INIT = ", self.time_on
         print "SPEED = ", self.speed, " time_on IN INIT = ", self.time_on
 
     # function using _stop function
@@ -83,15 +80,11 @@ class FanSpeed(threading.Thread):
     def run(self):
         fan_time = time_on
         print "TIME_ON IN RUN", time_on
-        print "TIME_ON IN RUN", time_on
-        print "TIME_ON IN RUN", time_on
         while True:
             try:
                 if self.stopped():
                     return
                 p.start(speed)
-                print "SPEED =", speed
-                print "SPEED =", speed
                 print "SPEED =", speed
                 if fan_time <= 0:
                     try:
@@ -106,13 +99,9 @@ class FanSpeed(threading.Thread):
                 time.sleep(1)
                 fan_time -= 1
                 print "NEEEEEEEEEEEEEEEW_TIME IN RUN= ", fan_time
-                print "NEEEEEEEEEEEEEEEW_TIME IN RUN= ", fan_time
-                print "NEEEEEEEEEEEEEEEW_TIME IN RUN= ", fan_time
             except:
                 print "ERROR: FAN COULDN'T START"
                 print ValueError
-                #pass
-            #print("fan_speed threading, run()")
 
 def stop_stations():
     """
@@ -134,10 +123,9 @@ def stop_stations():
     GPIO.output(chan_list_BOARD, True)
     fan_speed = FanSpeed()
     print "FAN SPEED @ STOP_STATIONS"
-    fan_speed.start()
     fan_speed.stop()
     fan_speed.join()
-    print "HELLO STOP AT THE END OF STOP_STATIONS"
+    print "fan_speed.stop() AT THE END OF STOP_STATIONS"
     time.sleep(0.1)
     return
 
@@ -146,10 +134,7 @@ def device_on(sid):
     try:
         global speed
         global time_on
-        #time_on = gv.rs[sid][2]
-        time_on = 10
-        print "TIME ON DEVICE ON = ", time_on
-        print "TIME ON DEVICE ON = ", time_on
+        time_on = gv.rs[sid][2]
         print "TIME ON DEVICE ON = ", time_on
         if sid in range(0,7):
             if sid in range(0,4):
@@ -192,7 +177,7 @@ def device_off(sid):
                 print "RELAY ", sid, " IS ON"
                 time.sleep(0.1)
             elif sid in range(4,6):
-                GPIO.output(chan_list_BOARD[sid+1], True)
+                GPIO.output(chan_list_BOARD[sid+1], True) # this is a fix, due that relay or associated pin (TXD) are not orking properly. Jumps to realy 6
                 print "RELAY ", sid, " IS ON"
                 time.sleep(0.1)
         else:
