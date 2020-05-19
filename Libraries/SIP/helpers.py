@@ -123,6 +123,10 @@ def stop_stations():
     GPIO.output(chan_list_BOARD, True)
     fan_speed = FanSpeed()
     print "FAN SPEED @ STOP_STATIONS"
+    time_on = 0
+    fan_speed = FanSpeed(args=(speed, time_on))
+    fan_speed.start()
+    time.sleep(0.1)
     fan_speed.stop()
     fan_speed.join()
     print "fan_speed.stop() AT THE END OF STOP_STATIONS"
@@ -145,7 +149,7 @@ def device_on(sid):
                 GPIO.output(chan_list_BOARD[sid+1], False)
                 print "RELAY ", sid, " IS ON"
                 time.sleep(0.1)
-        elif sid in range(8,11): # FAN/SSR
+        if sid in range(8,11): # FAN/SSR
             try:
                 if sid == 8:
                     speed = dc.get("low_speed")

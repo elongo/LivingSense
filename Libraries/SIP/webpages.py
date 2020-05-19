@@ -115,8 +115,6 @@ class change_values(ProtectedPage):
         print 'qdict: ', qdict
         if 'rsn' in qdict and qdict['rsn'] == '1':
             stop_stations()
-            #STOPPING ALL STATIONS
-            # Set trigger to False (Low)
             raise web.seeother('/')
         if 'en' in qdict and qdict['en'] == '':
             qdict['en'] = '1'  # default
@@ -452,7 +450,7 @@ class delete_program(ProtectedPage):
     """Delete one or all existing program(s)."""
 
     def GET(self):
-        qdicstop_st = web.input()
+        qdict = web.input()
         if qdict['pid'] == '-1':
             del gv.pd[:]
             jsave(gv.pd, 'programs')
