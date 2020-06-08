@@ -12,6 +12,7 @@ import atexit
 import RPi.GPIO as GPIO
 import glob
 from tentacle_pi.AM2315 import AM2315
+import math
     #END of Libraries
 
 """ *** POWER BI API's *** """
@@ -20,18 +21,16 @@ REST_API_URL = "https://api.powerbi.com/beta/d9dc4061-aba4-47ad-9604-c994ff5caff
 
 """ *** VARIABLES *** """
 # FIXED PARAMETERS FOR GAUGES IN POWER BI
-minVWC = 0 #
-maxVWC = 100 ##
-wet = 40 #
+minVWC = 0 
+maxVWC = 100 
+wet = 40 
 VWC = {}
 GAIN = 1
 maxT_Cpu = 80
 minT_Cpu = 0
-okT_Cpu = 45
-tank_empty_1 = 0 #
-tank_full_1 = 2000 #
-tank_empty_2 = 0 ##
-tank_full_2 = 2000 #
+okT_Cpu = 452000
+tank_empty = 0
+tank_full = 96*(math.pi*(27.5**2)) # Height = 96cm, Diameter = 55cm (r=27.5cm)
 
 #Rockwool temperature setup (SENSOR DS18B20)
 os.system('modprobe w1-gpio')
@@ -115,9 +114,8 @@ def level_1():
     distance = elapsed * 34300
     # total distance travelled by sound, divided by 2 (due to sound return), minus 3 cm (gap betwen sensor and water)
     distance = (distance -3.0)/ 2.0
-    v_total = 2000
-    v_empty = (distance * 5.06)
-    v_in_tank_1 = v_total - v_empty
+    v_empty = (distance*(math.pi*(27.5**2)))
+    v_in_tank_1 = tank_full - v_empty
     # Reset GPIO settings
     print "v_in_tank_1 = ", v_in_tank_1
     return v_in_tank_1
@@ -154,11 +152,10 @@ def level_2():
     distance = elapsed * 34300
     # total distance travelled by sound, divided by 2 (due to sound return), minus 3 cm (gap betwen sensor and water)
     distance = (distance -3.0)/ 2.0
-    v_total = 2000
-    v_empty = (distance * 5.06)
-    v_in_tank_2 = v_total - v_empty
+    v_empty = (distance*(math.pi*(27.5**2)))
+    v_in_tank_2 = tank_full - v_empty
     # Reset GPIO settings
-    print "v_in_tank_2 = ", v_in_tank_2
+    print "v_in_tank_1 = ", v_in_tank_2
     return v_in_tank_2
     # END OF WATER LEVEL SENSOR
 
@@ -220,7 +217,7 @@ try:
     ait_t_h_out = air_out() # returns temperature, humidty
     temps_DS18B20 = ReadSensors() #returns t_surf_a = temperatures[0], t_surf_b = temperatures[1], t_treat_w = temperatures[2], t_waste_w = temperatures[3]
 
-    data = '[{{"timestamp": "{0}", "t_cpu": "{1:0.1f}", "vwc_1": "{2:0.1f}", "vwc_2": "{3:0.1f}","w_lev_1": "{4:0.1f}","w_lev_2": "{5:0.1f}","air_t_in": "{6:0.1f}","air_h_in": "{7:0.1f}","air_t_out": "{8:0.1f}","air_h_out": "{9:0.1f}","t_surf_a": "{10:0.1f}","t_surf_b": "{11:0.1f}","t_treat_w": "{12:0.1f}", "t_waste_w": "{13:0.1f}", "minVWC": "{14:0.1f}", "maxVWC": "{15:0.1f}", "wet": "{16:0.1f}", "tank_empty_1": "{17:0.1f}", "tank_full_1": "{18:0.1f}", "tank_empty_2": "{19:0.1f}", "tank_full_2": "{20:0.1f}", "reading_interval":"{21:0.1f}"}}]'.format(now, t_cpu, VWC[2], VWC[3], w_lev_1, w_lev_2, ait_t_h_in[0], ait_t_h_in[1], ait_t_h_out[0], ait_t_h_out[1], temperatures[0], temperatures[1], temperatures[2], temperatures[3], minVWC, maxVWC, wet, tank_empty_1, tank_full_1, tank_empty_2, tank_full_2, reading_interval)
+    data = '[{{"timestamp": "{0}", "t_cpu": "{1:0.1f}", "vwc_1": "{2:0.1f}", "vwc_2": "{3:0.1f}","w_lev_1": "{4:0.1f}","w_lev_2": "{5:0.1f}","air_t_in": "{6:0.1f}","air_h_in": "{7:0.1f}","air_t_out": "{8:0.1f}","air_h_out": "{9:0.1f}","t_surf_a": "{10:0.1f}","t_surf_b": "{11:0.1f}","t_treat_w": "{12:0.1f}", "t_waste_w": "{13:0.1f}", "minVWC": "{14:0.1f}", "maxVWC": "{15:0.1f}", "wet": "{16:0.1f}", "tank_empty": "{17:0.1f}", "tank_full": "{18:0.1f}", "reading_interval":"{19:0.1f}"}}]'.format(now, t_cpu, VWC[2], VWC[3], w_lev_1, w_lev_2, ait_t_h_in[0], ait_t_h_in[1], ait_t_h_out[0], ait_t_h_out[1], temperatures[0], temperatures[1], temperatures[2], temperatures[3], minVWC, maxVWC, wet, tank_empty, tank_full, reading_interval)
     print ("data", data)
     print "I'll send data to Power BI, and will  sleep for ", reading_interval, "seconds. See you then!"
     del temperatures[:]
