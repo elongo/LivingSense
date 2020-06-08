@@ -66,39 +66,25 @@ def ReadSensors():
         # print( sensor_file )
         ReadSingleSensor( i, sensor_file )
 
-while True:
-    try:
+try:
+    while True:
         ReadSensors()
-
-        """ *** SENDING DATA TO POWER BI *** """
         # datetime
-        now = datetime.strftime(datetime.now(), "%Y-%m-%dT%H:%M:%S%Z")
-
+        #now = datetime.strftime(datetime.now(), "%Y-%m-%dT%H:%M:%S%Z")
         # formatting data for POWER BI
-        data = '[{{"timestamp": "{0}", "temperatura_fondo": "{1:0.1f}", "temperatura_medio": "{2:0.1f}", "temperatura_superficie": "{3:0.1f}", "max_temp": "{4:0.1f}", "min_temp":"{5:0.1f}"}}]'.format(now, temperatures[0], temperatures[1], temperatures[2], max_temp, min_temp)
-        print ("data", data)
-        #make HTTP POST request to Power BI REST API
-        """
-        req = urllib2.Request(REST_API_URL, data)
-        response = urllib2.urlopen(req)
-        #print("POST request to Power BI with data:{0}".format(data))
-        print("Response: HTTP {0} {1}\n".format(response.getcode(), response.read()))
-        print "DATA SENT TO POWER BI\n"
-        """
-
+        #data = '[{{"timestamp": "{0}", "temperatura_fondo": "{1:0.1f}", "temperatura_medio": "{2:0.1f}", "temperatura_superficie": "{3:0.1f}", "max_temp": "{4:0.1f}", "min_temp":"{5:0.1f}"}}]'.format(now, temperatures[0], temperatures[1], temperatures[2], max_temp, min_temp)
+        #print ("data", data)
         #clearing temperatures list values
         del temperatures[:]
+        print "WAITING 3 SEC FOR THE NEXT READING\n"
+        time.sleep(5)
 
-    except:
-        print "issue reading temps"
-    """
-    except urllib2.HTTPError as e:
-        print("HTTP Error: {0} - {1}".format(e.code, e.reason))
-    except urllib2.URLError as e:
-        print("URL Error: {0}".format(e.reason))
-    except Exception as e:
-        print("POWER BI: General Exception: {0}".format(e))
-    """
+except KeyboardInterrupt:
+    print "Program stopped from Keyboard"
+except:
+    print "Issue while reading temperatures"
+finally:
+    GPIO.cleanup()
+    print "GPIO.cleanup() executed"
 
-    print "WAITING 3 SEC FOR THE NEXT READING\n"
-    time.sleep(10)
+    

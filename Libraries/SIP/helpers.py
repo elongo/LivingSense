@@ -31,10 +31,11 @@ GPIO.setmode(GPIO.BOARD)
 global chan_list
 # Channel list for setting up all GPIO at the same time
 chan_list_BCM = (16, 5, 6, 18, 14, 17, 27, 22, 25) #BCM numbering
-chan_list_BOARD = (36, 29, 31, 12, 8, 11, 13, 15) #BOARD numbering
+#chan_list_BOARD = (36, 29, 31, 12, 8, 11, 13, 15) #BOARD numbering
+chan_list_BOARD = (36, 8, 29, 31, 11, 12, 15, 13) #  BOARD numbering for 4X relays -> !!! ACHTUNG, Here PINS 8,11,13 (indexes 1,4,7) are not operating, only fixing the indexes for proper assignment of SID.
 
 # Set pins as output and input Mechanical Relays (1-8)
-for i in range(8):
+for i in range(7):
     GPIO.setup(chan_list_BOARD[i], GPIO.OUT)  # 9 Relays
     # Set trigger to False (Low)
     GPIO.output(chan_list_BOARD[i], True)
@@ -56,9 +57,7 @@ class FanSpeed(threading.Thread):
     # Thread class with a _stop() method.
     # The thread itself has to check
     # regularly for the stopped() condition.
-    print "HELLO CLASS FANSPEED"
     def __init__(self, args=(speed, time_on)):
-        print "HELLO init FANSPEED"
         super(FanSpeed, self).__init__()
         self._stop = threading.Event()
         self.speed = speed
@@ -69,12 +68,10 @@ class FanSpeed(threading.Thread):
     def stop(self):
         self._stop.set()
         p.stop() # stops PWM
-        print "p.stop in stop(self) EXECUTED BY END OF THREEEEAAAAAAAAAAAAD"
         time.sleep(0.5)
         return
 
     def stopped(self):
-        print "STOPPED(SELF)"
         return self._stop.isSet()
 
     def run(self):
@@ -85,13 +82,13 @@ class FanSpeed(threading.Thread):
                 if self.stopped():
                     return
                 p.start(speed)
-                print "SPEED =", speed
+                print "SPEED (duty cylce) =", speed
                 if fan_time <= 0:
                     try:
                         p.ChangeDutyCycle(0)
                         time.sleep(0.1)
                         p.stop()
-                        print "p.stop EXECUTED BY TIME_ON OUT"
+                        print "p.stop Executed (PWM)"
                         time.sleep(0.1)
                         break
                     except:
@@ -118,18 +115,12 @@ def stop_stations():
     for i in range(gv.sd['nst']):
         gv.rs.append([0, 0, 0, 0])
     gv.sd['bsy'] = 0
-    print " I AM STOP_STATIONS()"
     # TURNS MECHANICAL AND SOLID STATE RELAYS OFF
     GPIO.output(chan_list_BOARD, True)
     fan_speed = FanSpeed()
-    print "FAN SPEED @ STOP_STATIONS"
-    time_on = 0
-    fan_speed = FanSpeed(args=(speed, time_on))
     fan_speed.start()
-    time.sleep(0.1)
     fan_speed.stop()
     fan_speed.join()
-    print "fan_speed.stop() AT THE END OF STOP_STATIONS"
     time.sleep(0.1)
     return
 
@@ -139,17 +130,14 @@ def device_on(sid):
         global speed
         global time_on
         time_on = gv.rs[sid][2]
-        print "TIME ON DEVICE ON = ", time_on
+        #time_on = 10
+        print "TIME ON in device_on(sid) = ", time_on
+        #if sid in range(0,8):
         if sid in range(0,7):
-            if sid in range(0,4):
-                GPIO.output(chan_list_BOARD[sid], False)
-                print "RELAY ", sid, " IS ON"
-                time.sleep(0.1)
-            elif sid in range(4,6):
-                GPIO.output(chan_list_BOARD[sid+1], False)
-                print "RELAY ", sid, " IS ON"
-                time.sleep(0.1)
-        if sid in range(8,11): # FAN/SSR
+            GPIO.output(chan_list_BOARD[sid], False)
+            print "RELAY ", sid, " IS ON"
+            time.sleep(0.1)
+        elif sid in range(8,11): # FAN/SSR
             try:
                 if sid == 8:
                     speed = dc.get("low_speed")
@@ -162,7 +150,6 @@ def device_on(sid):
                     print "high_speed = " , speed
                 fan_speed = FanSpeed(args=(speed, time_on))
                 fan_speed.start() #starting FanSpeed thread
-                print "FAN SPEED INSIDE DEVICE ON"
             except ValueError as valerr:
                 print valerr
                 pass
@@ -176,16 +163,11 @@ def device_on(sid):
 def device_off(sid):
     try:
         if sid in range(0,7):
-            if sid in range(0,4):
-                GPIO.output(chan_list_BOARD[sid], True)
-                print "RELAY ", sid, " IS ON"
-                time.sleep(0.1)
-            elif sid in range(4,6):
-                GPIO.output(chan_list_BOARD[sid+1], True) # this is a fix, due that relay or associated pin (TXD) are not orking properly. Jumps to realy 6
-                print "RELAY ", sid, " IS ON"
-                time.sleep(0.1)
+            GPIO.output(chan_list_BOARD[sid], True)
+            print "RELAY ", sid, " IS ON"
+            time.sleep(0.1)
         else:
-            print "________"
+            print "NO DEVICES WERE TURNED OFF BY device_off()"
     except ValueError as valerr:
         print "Problem turning OFF station  ---> ", sid, "BECAUSE OF", valerr
         pass
