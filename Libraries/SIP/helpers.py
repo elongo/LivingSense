@@ -51,39 +51,37 @@ p = GPIO.PWM(32, frequency)  # GPIO.PWM(channel, frequency (in Hz)
 """ SIP variables """
 gv.restarted = 1
 
+# We want only one FanSpeed thread. The current FanSpeed thread is saved in this variable.
+fanspeed = None
+
 """FAN_THREAD FUNCTION (SSR/PWM) """
 class FanSpeed(threading.Thread):
-    # Thread class with a _stop() method.
-    # The thread itself has to check
-    # regularly for the stopped() condition.
+    # Thread class with a terminate() and cleanup() methods.
     print "HELLO CLASS FANSPEED"
     def __init__(self, args=(speed, time_on)):
         print "HELLO init FANSPEED"
         super(FanSpeed, self).__init__()
-        self._stop = threading.Event()
+        self.running = True
+        #self._stop = threading.Event()
         self.speed = speed
         self.time_on = time_on
         print "SPEED = ", self.speed, " time_on IN INIT = ", self.time_on
 
-    # function using _stop function
-    def stop(self):
-        self._stop.set()
+    def terminate(self):
+        self.running = False
+    
+    def cleanup(self):
         p.stop() # stops PWM
         print "p.stop in stop(self) EXECUTED BY END OF THREEEEAAAAAAAAAAAAD"
-        time.sleep(0.5)
-        return
-
-    def stopped(self):
-        print "STOPPED(SELF)"
-        return self._stop.isSet()
+        #time.sleep(0.5)
 
     def run(self):
         fan_time = time_on
         print "TIME_ON IN RUN", time_on
-        while True:
+        while self.running == True:
             try:
-                if self.stopped():
-                    return
+                #if self.stopped():
+                #    return
                 p.start(speed)
                 print "SPEED =", speed
                 if fan_time <= 0:
@@ -102,6 +100,7 @@ class FanSpeed(threading.Thread):
             except:
                 print "ERROR: FAN COULDN'T START"
                 print ValueError
+        self.cleanup()
 
 def stop_stations():
     """
@@ -120,15 +119,17 @@ def stop_stations():
     gv.sd['bsy'] = 0
     print " I AM STOP_STATIONS()"
     # TURNS MECHANICAL AND SOLID STATE RELAYS OFF
+    GPIO.setup(chan_list_BOARD, GPIO.OUT)  # 9 Relays
     GPIO.output(chan_list_BOARD, True)
-    fan_speed = FanSpeed()
     print "FAN SPEED @ STOP_STATIONS"
     time_on = 0
-    fan_speed = FanSpeed(args=(speed, time_on))
-    fan_speed.start()
-    time.sleep(0.1)
-    fan_speed.stop()
-    fan_speed.join()
+    global fanspeed
+    if fanspeed and fanspeed.is_alive():
+        print "Killing old FanSpeed thread"
+        fanspeed.terminate()
+        fanspeed.join()
+
+    
     print "fan_speed.stop() AT THE END OF STOP_STATIONS"
     time.sleep(0.1)
     return
@@ -160,8 +161,14 @@ def device_on(sid):
                 elif sid == 10:
                     speed = dc.get("high_speed")
                     print "high_speed = " , speed
-                fan_speed = FanSpeed(args=(speed, time_on))
-                fan_speed.start() #starting FanSpeed thread
+                print "FAN SPEED STARTING"
+                global fanspeed
+                if fanspeed and fanspeed.is_alive():
+                    print "Killing old FanSpeed thread"
+                    fanspeed.terminate()
+                    fanspeed.join()
+                fanspeed = FanSpeed(args=(speed, time_on))
+                fanspeed.start() #starting FanSpeed thread
                 print "FAN SPEED INSIDE DEVICE ON"
             except ValueError as valerr:
                 print valerr
