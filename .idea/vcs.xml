@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Libraries/433Utils" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Libraries/433Utils/rc-switch" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Libraries/AWS/aws-iot-device-sdk-python" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Libraries/Adafruit_Python_ADS1x15" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Libraries/Pi_AM2315" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Libraries/matplotlib" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Libraries/rpi-rf" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Libraries/wiringPi" vcs="Git" />
+  </component>
+</project>

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python -u
 # -*- coding: utf-8 -*-
 
 """ *** LivingSense Libraries *** """
@@ -12,26 +12,25 @@ import atexit
 import RPi.GPIO as GPIO
 import glob
 from tentacle_pi.AM2315 import AM2315
+import math
     #END of Libraries
 
 """ *** POWER BI API's *** """
 # REST API endpoint, given to you when you create an API streaming dataset
-REST_API_URL = "https://api.powerbi.com/beta/d9dc4061-aba4-47ad-9604-c994ff5caff0/datasets/c46ba680-bc02-41d9-8105-fc1faeda5f8d/rows?redirectedFromSignup=1&key=M9trNzRvwvaLZNLz724iZrs060QC34v4LAdTEF2Twd4TW9hC3qozEY4CcIok%2FxrXYypUZRTdNjFZq2AzpJzPtA%3D%3D"
+REST_API_URL = "https://api.powerbi.com/beta/d9dc4061-aba4-47ad-9604-c994ff5caff0/datasets/87e8c51e-778f-4c66-896f-8b7f4f2ebd01/rows?redirectedFromSignup=1&key=6tXs51dtkpOsrMSBg%2F79aqEGY7ZLDkVSgNwlRZD%2BvtbLiCwaA2Nt0Ad9OpSQy%2F4hmi%2BeGMXIOw4SRxyRh6ZzSw%3D%3D"
 
 """ *** VARIABLES *** """
 # FIXED PARAMETERS FOR GAUGES IN POWER BI
-minVWC = 0 #
-maxVWC = 100 ##
-wet = 40 #
+minVWC = 0 
+maxVWC = 100 
+wet = 40 
 VWC = {}
 GAIN = 1
 maxT_Cpu = 80
 minT_Cpu = 0
 okT_Cpu = 45
-tank_empty_1 = 0 #
-tank_full_1 = 2000 #
-tank_empty_2 = 0 ##
-tank_full_2 = 2000 #
+tank_empty = 0
+tank_full = (80*273*63)/1000 # Height = 80cm, Width = 633cm, Lenght = 273 (Converted to Liters)
 
 #Rockwool temperature setup (SENSOR DS18B20)
 os.system('modprobe w1-gpio')
@@ -50,8 +49,8 @@ temperatures = []
 
 """ *** SAYS GOOD BYE WHEN PROGRAM STOPS *** """
 def exit_handler():
-    print 'LivingSense stopped TRANSMITTING #DATA. See you soon!'
     GPIO.cleanup()
+    print 'LivingSense stopped TRANSMITTING #DATA. See you soon!. GPIO.cleanup() executed' 
     return
 atexit.register(exit_handler)
     # END OF GOOD BYE
@@ -78,18 +77,6 @@ def vwc():
           VWC[i+1] =  (-0.0083*values[i]) + 300 # made up calibration, for dashboard test only.
           #VWC[i+1] =  (-0.00908*values[i]) + 187 # Calibratio made by Théo
     print "VWC = ", VWC
-    """
-  # Read the specified ADC channel using the previously set gain value.
-
-    values[1] = adc.read_adc(1, gain=GAIN)
-    values[2] = adc.read_adc(2, gain=GAIN)
-  #VWC[i+1] =  (-0.0083*values[i]) + 47.81 # Old valibration made by EL
-    vwc_1 =  (-0.0083*values[1]) + 300 # made up calibration, for dashboard test only.
-    vwc_2 =  (-0.0083*values[2]) + 300 # made up calibration, for dashboard test only.
-  #VWC[i+1] =  (-0.00908*values[i]) + 187 # Calibratio made by Théo
-    print "vwc_1=", vwc_1
-    print "vwc_2=", vwc_2
-    """
     return VWC
     # END OF VWC
 
@@ -127,9 +114,8 @@ def level_1():
     distance = elapsed * 34300
     # total distance travelled by sound, divided by 2 (due to sound return), minus 3 cm (gap betwen sensor and water)
     distance = (distance -3.0)/ 2.0
-    v_total = 2000
-    v_empty = (distance * 5.06)
-    v_in_tank_1 = v_total - v_empty
+    v_empty = (distance*(273*63)/1000
+    v_in_tank_1 = tank_full - v_empty
     # Reset GPIO settings
     print "v_in_tank_1 = ", v_in_tank_1
     return v_in_tank_1
@@ -166,11 +152,10 @@ def level_2():
     distance = elapsed * 34300
     # total distance travelled by sound, divided by 2 (due to sound return), minus 3 cm (gap betwen sensor and water)
     distance = (distance -3.0)/ 2.0
-    v_total = 2000
-    v_empty = (distance * 5.06)
-    v_in_tank_2 = v_total - v_empty
+    v_empty = (distance*(273*63)/1000
+    v_in_tank_2 = tank_full - v_empty
     # Reset GPIO settings
-    print "v_in_tank_2 = ", v_in_tank_2
+    print "v_in_tank_1 = ", v_in_tank_2
     return v_in_tank_2
     # END OF WATER LEVEL SENSOR
 
@@ -198,59 +183,52 @@ def ReadSingleSensor( i, sensor_file ):
         #print "SENSOR",i, " = ", temp_c
         temperatures.append(temp_c)
         print "temperatures LIST = ", temperatures
-    time.sleep(0.5)
 
 def ReadSensors():
     for (i, item) in enumerate(device_folders):
         sensor_file = item + '/w1_slave'
         # print( sensor_file )
-        ReadSingleSensor( i, sensor_file )
-        print "hi, this was ReadSensors (DS18B20)"
+        ReadSingleSensor( i, sensor_file)
+        #print "hi, this was ReadSensors (DS18B20)"
         # END OF ROCKWOOLL TEMP AND HUMIDTY
 
 """ *** AIR TEMPERATURE AND HUMIDTY - SENSOR AM2315*** """
 def air_in(): #in default I2C bus 1
     temperature_in, humidity_in, crc_check_in = am_in.sense()
-    print "hi, this was air_IN"
     print "crc_check_in = ", crc_check_in
     return temperature_in, humidity_in
     time.sleep(1)
 
 def air_out(): #in I2C bus 3
     temperature_out, humidity_out, crc_check_out = am_out.sense()
-    print "this was air_OUT"
     print "crc_check_out = ", crc_check_out
     return temperature_out, humidity_out
     time.sleep(1)
 
-while True:
-    try:
-        now = datetime.strftime(datetime.now(), "%Y-%m-%dT%H:%M:%S%Z")
-        t_cpu = get_cpu_temp() # returns t
-        VWC = vwc() #returns Sensor 0, Sensor 1, Sensor 2, Sensor 3
-        w_lev_1 = level_1() #returns distance
-        w_lev_2 = level_2() #returns distance
-        ait_t_h_in = air_in() # returns temperature, humidty
-        ait_t_h_out = air_out() # returns temperature, humidty
-        temps_DS18B20 = ReadSensors() #returns t_surf_a = temperatures[0], t_surf_b = temperatures[1], t_treat_w = temperatures[2], t_waste_w = temperatures[3]
+try:
+  while True:
+    reading_interval = 300
+    now = datetime.strftime(datetime.now(), "%Y-%m-%dT%H:%M:%S%Z")
+    t_cpu = get_cpu_temp() # returns t
+    VWC = vwc() #returns Sensor 0, Sensor 1, Sensor 2, Sensor 3
+    w_lev_1 = level_1() #returns distance
+    w_lev_2 = level_2() #returns distance
+    ait_t_h_in = air_in() # returns temperature, humidty
+    ait_t_h_out = air_out() # returns temperature, humidty
+    temps_DS18B20 = ReadSensors() #returns t_surf_a = temperatures[0], t_surf_b = temperatures[1], t_treat_w = temperatures[2], t_waste_w = temperatures[3]
 
-        """ FORMATTING DATA FOR POWER BI"""
+    data = '[{{"timestamp": "{0}", "t_cpu": "{1:0.1f}", "vwc_1": "{2:0.1f}", "vwc_2": "{3:0.1f}","w_lev_1": "{4:0.1f}","w_lev_2": "{5:0.1f}","air_t_in": "{6:0.1f}","air_h_in": "{7:0.1f}","air_t_out": "{8:0.1f}","air_h_out": "{9:0.1f}","t_surf_a": "{10:0.1f}","t_surf_b": "{11:0.1f}","t_treat_w": "{12:0.1f}", "t_waste_w": "{13:0.1f}", "minVWC": "{14:0.1f}", "maxVWC": "{15:0.1f}", "wet": "{16:0.1f}", "tank_empty": "{17:0.1f}", "tank_full": "{18:0.1f}", "reading_interval":"{19:0.1f}"}}]'.format(now, t_cpu, VWC[2], VWC[3], w_lev_1, w_lev_2, ait_t_h_in[0], ait_t_h_in[1], ait_t_h_out[0], ait_t_h_out[1], temperatures[0], temperatures[1], temperatures[2], temperatures[3], minVWC, maxVWC, wet, tank_empty, tank_full, reading_interval)
+    print ("data", data)
+    print "I'll send data to Power BI, and will  sleep for ", reading_interval, "seconds. See you then!"
+    del temperatures[:]
 
-        """data = '[{{"timestamp": "{0}", "t_cpu": "{1:0.1f}", "vwc_1": "{2:0.1f}", "vwc_2": "{3:0.1f}", "vwc_3": "{4:0.1f}", "vwc_4":"{5:0.1f}","w_lev_1": "{6:0.1f}","w_lev_2": "{7:0.1f}","air_t_in": "{8:0.1f}","air_h_in": "{9:0.1f}","air_t_out": "{10:0.1f}","air_h_out": "{11:0.1f}","t_surf_a": "{12:0.1f}","t_surf_b": "{13:0.1f}","t_treat_w": "{14:0.1f}", "t_waste_w": "{15:0.1f}", "minVWC": "{16:0.1f}", "maxVWC": "{17:0.1f}", "wet": "{18:0.1f}", "tank_empty_1": "{19:0.1f}", "tank_full_1": "{20:0.1f}", "tank_empty_2": "{21:0.1f}", "tank_full_2": "{22:0.1f}"}}]'.format(now, t_cpu, VWC[1], VWC[2], VWC[3], VWC[4], w_lev_1, w_lev_2, ait_t_h_in[0], ait_t_h_in[1], ait_t_h_out[0], ait_t_h_out[1], temperatures[0], temperatures[1], temperatures[2], temperatures[3], minVWC, maxVWC, wet, tank_empty_1, tank_full_1, tank_empty_2, tank_full_2)
-        print ("data", data)
-        """
+    """ SENDING DATA TO POWER BI"""
+    req = urllib2.Request(REST_API_URL, data)
+    response = urllib2.urlopen(req)
+    #print("POST request to Power BI with data:{0}".format(data))
+    print("Response: HTTP {0} {1}\n".format(response.getcode(), response.read()))
+    print "DATA SENT TO POWER BI\n"
+    time.sleep(reading_interval)
 
-        data = '[{{"timestamp": "{0}", "t_cpu": "{1:0.1f}", "vwc_1": "{2:0.1f}", "vwc_2": "{3:0.1f}","w_lev_1": "{4:0.1f}","w_lev_2": "{5:0.1f}","air_t_in": "{6:0.1f}","air_h_in": "{7:0.1f}","air_t_out": "{8:0.1f}","air_h_out": "{9:0.1f}","t_surf_a": "{10:0.1f}","t_surf_b": "{11:0.1f}","t_treat_w": "{12:0.1f}", "t_waste_w": "{13:0.1f}", "minVWC": "{14:0.1f}", "maxVWC": "{15:0.1f}", "wet": "{16:0.1f}", "tank_empty_1": "{17:0.1f}", "tank_full_1": "{18:0.1f}", "tank_empty_2": "{19:0.1f}", "tank_full_2": "{20:0.1f}", "now_num":"{21}"}}]'.format(now, t_cpu, VWC[2], VWC[3], w_lev_1, w_lev_2, ait_t_h_in[0], ait_t_h_in[1], ait_t_h_out[0], ait_t_h_out[1], temperatures[0], temperatures[1], temperatures[2], temperatures[3], minVWC, maxVWC, wet, tank_empty_1, tank_full_1, tank_empty_2, tank_full_2, now)
-        print ("data", data)
-
-        """ SENDING DATA TO POWER BI"""
-        req = urllib2.Request(REST_API_URL, data)
-        response = urllib2.urlopen(req)
-        #print("POST request to Power BI with data:{0}".format(data))
-        print("Response: HTTP {0} {1}\n".format(response.getcode(), response.read()))
-        print "DATA SENT TO POWER BI\n"
-        del temperatures[:]
-        time.sleep(5)
-
-    except:
-        print ("ACHTUNG: ---> ISSUE WHILE STREAMIN TO Power BI")
+except:
+    print ("ACHTUNG: ---> ISSUE WHILE STREAMIN TO Power BI")
