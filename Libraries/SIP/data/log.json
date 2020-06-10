@@ -1,4 +1,10 @@
-{"program":"1","station":10,"duration":"00:20","start":"15:50:00","date":"2020-06-09"}
+{"program":"Run-once","station":8,"duration":"00:15","start":"20:33:33","date":"2020-06-09"}
+{"duration": "00:15", "station": 6, "program": "Run-once", "date": "2020-06-09", "start": "20:33:33"}
+{"duration": "00:15", "program": "Run-once", "station": 5, "date": "2020-06-09", "start": "20:33:33"}
+{"duration": "00:15", "station": 3, "program": "Run-once", "date": "2020-06-09", "start": "20:33:33"}
+{"duration": "00:15", "program": "Run-once", "station": 2, "date": "2020-06-09", "start": "20:33:33"}
+{"duration": "00:15", "station": 0, "program": "Run-once", "date": "2020-06-09", "start": "20:33:33"}
+{"duration": "00:20", "program": "1", "station": 10, "date": "2020-06-09", "start": "15:50:00"}
 {"duration": "00:20", "station": 6, "program": "1", "date": "2020-06-09", "start": "15:50:00"}
 {"duration": "00:20", "program": "1", "station": 3, "date": "2020-06-09", "start": "15:50:00"}
 {"duration": "00:20", "station": 0, "program": "1", "date": "2020-06-09", "start": "15:50:00"}
@@ -92,9 +98,3 @@
 {"duration": "00:20", "station": 0, "program": "1", "date": "2020-06-09", "start": "14:00:00"}
 {"duration": "00:20", "program": "1", "station": 10, "date": "2020-06-09", "start": "13:55:00"}
 {"duration": "00:20", "station": 6, "program": "1", "date": "2020-06-09", "start": "13:55:00"}
-{"duration": "00:20", "program": "1", "station": 3, "date": "2020-06-09", "start": "13:55:00"}
-{"duration": "00:20", "station": 0, "program": "1", "date": "2020-06-09", "start": "13:55:00"}
-{"duration": "00:20", "program": "1", "station": 10, "date": "2020-06-09", "start": "13:50:00"}
-{"duration": "00:20", "station": 6, "program": "1", "date": "2020-06-09", "start": "13:50:00"}
-{"duration": "00:20", "program": "1", "station": 3, "date": "2020-06-09", "start": "13:50:00"}
-{"duration": "00:20", "station": 0, "program": "1", "date": "2020-06-09", "start": "13:50:00"}

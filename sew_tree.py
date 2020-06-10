@@ -30,7 +30,7 @@ maxT_Cpu = 80
 minT_Cpu = 0
 okT_Cpu = 452000
 tank_empty = 0
-tank_full = 96*(math.pi*(27.5**2)) # Height = 96cm, Diameter = 55cm (r=27.5cm)
+tank_full = (96*(math.pi*(27.5**2)))/1000 # Height = 96cm, Diameter = 55cm (r=27.5cm). And converted to Liters (/1000)
 
 #Rockwool temperature setup (SENSOR DS18B20)
 os.system('modprobe w1-gpio')
@@ -114,7 +114,7 @@ def level_1():
     distance = elapsed * 34300
     # total distance travelled by sound, divided by 2 (due to sound return), minus 3 cm (gap betwen sensor and water)
     distance = (distance -3.0)/ 2.0
-    v_empty = (distance*(math.pi*(27.5**2)))
+    v_empty = (distance*(math.pi*(27.5**2)))/1000
     v_in_tank_1 = tank_full - v_empty
     # Reset GPIO settings
     print "v_in_tank_1 = ", v_in_tank_1
@@ -152,7 +152,7 @@ def level_2():
     distance = elapsed * 34300
     # total distance travelled by sound, divided by 2 (due to sound return), minus 3 cm (gap betwen sensor and water)
     distance = (distance -3.0)/ 2.0
-    v_empty = (distance*(math.pi*(27.5**2)))
+    v_empty = (distance*(math.pi*(27.5**2)))/1000
     v_in_tank_2 = tank_full - v_empty
     # Reset GPIO settings
     print "v_in_tank_1 = ", v_in_tank_2
@@ -204,31 +204,44 @@ def air_out(): #in I2C bus 3
     print "crc_check_out = ", crc_check_out
     return temperature_out, humidity_out
     time.sleep(1)
+def data_to_power_bi(data):
+    try:
+        """ SENDING DATA TO POWER BI"""
+        req = urllib2.Request(REST_API_URL, data)
+        response = urllib2.urlopen(req)
+        #print("POST request to Power BI with data:{0}".format(data))
+        print("Response: HTTP {0} {1}\n".format(response.getcode(), response.read()))
+        print "DATA SENT TO POWER BI\n"
+    except:
+        print "There seems to be an issue connecting to PowerBi. However data is always stored locally in sensor_data.txt"
+    finally:
+        continue
 
 try:
   while True:
-    reading_interval = 300
+    reading_interval = 3
     now = datetime.strftime(datetime.now(), "%Y-%m-%dT%H:%M:%S%Z")
     t_cpu = get_cpu_temp() # returns t
     VWC = vwc() #returns Sensor 0, Sensor 1, Sensor 2, Sensor 3
     w_lev_1 = level_1() #returns distance
     w_lev_2 = level_2() #returns distance
     ait_t_h_in = air_in() # returns temperature, humidty
+    time.sleep(3)
     ait_t_h_out = air_out() # returns temperature, humidty
     temps_DS18B20 = ReadSensors() #returns t_surf_a = temperatures[0], t_surf_b = temperatures[1], t_treat_w = temperatures[2], t_waste_w = temperatures[3]
 
     data = '[{{"timestamp": "{0}", "t_cpu": "{1:0.1f}", "vwc_1": "{2:0.1f}", "vwc_2": "{3:0.1f}","w_lev_1": "{4:0.1f}","w_lev_2": "{5:0.1f}","air_t_in": "{6:0.1f}","air_h_in": "{7:0.1f}","air_t_out": "{8:0.1f}","air_h_out": "{9:0.1f}","t_surf_a": "{10:0.1f}","t_surf_b": "{11:0.1f}","t_treat_w": "{12:0.1f}", "t_waste_w": "{13:0.1f}", "minVWC": "{14:0.1f}", "maxVWC": "{15:0.1f}", "wet": "{16:0.1f}", "tank_empty": "{17:0.1f}", "tank_full": "{18:0.1f}", "reading_interval":"{19:0.1f}"}}]'.format(now, t_cpu, VWC[2], VWC[3], w_lev_1, w_lev_2, ait_t_h_in[0], ait_t_h_in[1], ait_t_h_out[0], ait_t_h_out[1], temperatures[0], temperatures[1], temperatures[2], temperatures[3], minVWC, maxVWC, wet, tank_empty, tank_full, reading_interval)
-    print ("data", data)
+    sensor_data = open("sensor_data.txt", "a")
+    sensor_data.write(data)
+    sensor_data.write("\n")
+    print "data = ", data
+    print "data was written to file sensor_data.txt"
     print "I'll send data to Power BI, and will  sleep for ", reading_interval, "seconds. See you then!"
-    del temperatures[:]
+    data_to_power_bi(data)
 
-    """ SENDING DATA TO POWER BI"""
-    req = urllib2.Request(REST_API_URL, data)
-    response = urllib2.urlopen(req)
-    #print("POST request to Power BI with data:{0}".format(data))
-    print("Response: HTTP {0} {1}\n".format(response.getcode(), response.read()))
-    print "DATA SENT TO POWER BI\n"
+    del temperatures[:]
     time.sleep(reading_interval)
 
 except:
     print ("ACHTUNG: ---> ISSUE WHILE STREAMIN TO Power BI")
+    sensor_data.close()
