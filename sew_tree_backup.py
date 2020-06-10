@@ -213,12 +213,10 @@ def data_to_power_bi(data):
         print "DATA SENT TO POWER BI\n"
     except:
         print "There seems to be an issue connecting to PowerBi. However data is always stored locally in sensor_data.txt"
-    finally:
-        continue
 
 try:
   while True:
-    reading_interval = 3
+    reading_interval = 300
     now = datetime.strftime(datetime.now(), "%Y-%m-%dT%H:%M:%S%Z")
     t_cpu = get_cpu_temp() # returns t
     VWC = vwc() #returns Sensor 0, Sensor 1, Sensor 2, Sensor 3
