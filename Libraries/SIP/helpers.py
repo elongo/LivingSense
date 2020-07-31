@@ -44,7 +44,7 @@ speed = None
 time_on = None
 frequency = 5 #List for testing different frequencies (the lower the frequency, the higher the speed)
 #dc = (50, 70, 100) #List for testing different duty cycles (the higher the duty cycle, the higher the speed)
-dc = {"low_speed": 50, "mid_speed":70, "high_speed":100} # Ducty Cycle Dictionary, with three speeds.
+dc = {"low_speed": 35, "mid_speed":50, "high_speed":70} # Ducty Cycle Dictionary, with three speeds.
 GPIO.setup(32, GPIO.OUT)
 p = GPIO.PWM(32, frequency)  # GPIO.PWM(channel, frequency (in Hz)
 

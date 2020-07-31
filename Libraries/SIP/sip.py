@@ -28,7 +28,8 @@ from helpers import (
                      station_names,
                      get_rpi_revision,
                      device_on,
-                     device_off
+                     device_off,
+                     stop_stations
                      )
 from urls import urls  # Provides access to URLs for UI pages
 from gpio_pins import set_output
@@ -49,6 +50,8 @@ class TimingLoop(threading.Thread):
 
     def run(self):
         """ ***** Main timing algorithm. Runs in a separate thread.***** """
+        stop_stations() #stop_stations executed as a security measure, after power outages
+        print('stop_stations executed as a security measure, after power outages')
         print _('Starting timing L@OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO@P') + '\n'
         last_min = 0
         while self.running == True:  # infinite loop

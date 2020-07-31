@@ -61,9 +61,10 @@ def ReadSingleSensor( i, sensor_file ):
     time.sleep(0.5)
 
 def ReadSensors():
+    #for j in range(10):
     for (i, item) in enumerate(device_folders):
         sensor_file = item + '/w1_slave'
-        # print( sensor_file )
+        print( sensor_file )
         ReadSingleSensor( i, sensor_file )
 
 while True:

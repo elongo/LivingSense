@@ -16,7 +16,7 @@
     "lang": "en_US", 
     "lg": 1, 
     "loc": "Cairo, Egypt", 
-    "lr": 100, 
+    "lr": 0, 
     "mas": 0, 
     "mm": 0, 
     "mo": [
@@ -28,7 +28,7 @@
     "name": "SewTree_System_1", 
     "nbrd": 2, 
     "nopts": 13, 
-    "nprogs": 3, 
+    "nprogs": 0, 
     "nst": 16, 
     "password": "5b2f7b5d0437e3f3ee11f20530b14bca2006b9b7", 
     "pigpio": 0, 
