@@ -129,8 +129,7 @@ def stop_stations():
         print "Killing old FanSpeed thread"
         fanspeed.terminate()
         fanspeed.join()
-
-    
+        
     print "fan_speed.stop() AT THE END OF STOP_STATIONS"
     time.sleep(0.1)
     return
@@ -143,14 +142,13 @@ def device_on(sid):
         time_on = gv.rs[sid][2]
         print "TIME ON DEVICE ON = ", time_on
         if sid in range(0,7):
-            if sid in range(0,4):
+            if sid in range(0,7):
                 GPIO.output(chan_list_BOARD[sid], False)
-                print "RELAY ", sid, " IS ON"
+                print "SIIIIIIIID", sid, " IS ONNNNNN"
+                print "RELAY ", sid+1, " IS ON"
                 time.sleep(0.1)
-            elif sid in range(4,6):
-                GPIO.output(chan_list_BOARD[sid+1], False)
-                print "RELAY ", sid, " IS ON"
-                time.sleep(0.1)
+            else:
+                print "COULDN'T TURN ON RELAYS"
         if sid in range(8,11): # FAN/SSR
             try:
                 if sid == 8:
@@ -184,16 +182,12 @@ def device_on(sid):
 def device_off(sid):
     try:
         if sid in range(0,7):
-            if sid in range(0,4):
+            if sid in range(0,7):
                 GPIO.output(chan_list_BOARD[sid], True)
                 print "RELAY ", sid, " IS ON"
                 time.sleep(0.1)
-            elif sid in range(4,6):
-                GPIO.output(chan_list_BOARD[sid+1], True) # this is a fix, due that relay or associated pin (TXD) are not orking properly. Jumps to realy 6
-                print "RELAY ", sid, " IS ON"
-                time.sleep(0.1)
         else:
-            print "________"
+            print "COULDN'T TURN OFF RELAYS"
     except ValueError as valerr:
         print "Problem turning OFF station  ---> ", sid, "BECAUSE OF", valerr
         pass

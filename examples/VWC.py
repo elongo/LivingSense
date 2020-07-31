@@ -49,11 +49,12 @@ def vwc():
     sensorsRead = 300
 
       # Read all the ADC channel values in a list.
-    values = [0]*2
-    for i in range(2):
+    values = [0]*3
+    for i in range(3):
           # Read the specified ADC channel using the previously set gain value.
           values[i] = adc.read_adc(i, gain=GAIN)
           Sensor =  (-0.0081*values[i]) + 160.25
+          #Sensor =  (-0.0083*values[i]) + 167.81 # Old valibration made by EL
           print "Sensor", i , " = ", Sensor
           #print "values =",values
     return Sensor
@@ -61,8 +62,8 @@ def vwc():
 # Main loop.
 while True:
     # Read all the ADC channel values in a list.
-    values = [0]*2
-    for i in range(2):
+    values = [0]*3
+    for i in range(3):
         # Read the specified ADC channel using the previously set gain value.
         values[i] = adc.read_adc(i, gain=GAIN)
         # Note you can also pass in an optional data_rate parameter that controls
