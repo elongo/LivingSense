@@ -97,8 +97,8 @@ def level_1():
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
         # Define GPIO to use on Pi
-        GPIO_TRIGGER = 13
-        GPIO_ECHO = 26
+        GPIO_TRIGGER = 20
+        GPIO_ECHO = 21
         #Ultrasound Sensor_2
         # Set pins as output and input
         GPIO.setup(GPIO_TRIGGER,GPIO.OUT)  # Trigger
@@ -140,8 +140,8 @@ def level_2():
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
         # Define GPIO to use on Pi
-        GPIO_TRIGGER = 20
-        GPIO_ECHO = 21
+        GPIO_TRIGGER = 13
+        GPIO_ECHO = 26
         # Set pins as output and input
         GPIO.setup(GPIO_TRIGGER,GPIO.OUT)  # Trigger
         GPIO.setup(GPIO_ECHO,GPIO.IN)      # Echo
@@ -269,6 +269,7 @@ def write_sensor_data(data):
         sensor_data.write(data)
         sensor_data.write("\n")
         sensor_data.close()
+        time.sleep(0.5)
     except:
         print('ISSUE WITH write_sensor_data()')
 
@@ -277,6 +278,7 @@ while True:
         reading_interval = 900
         now = datetime.strftime(datetime.now(), "%Y-%m-%dT%H:%M:%S%Z")
         t_cpu = get_cpu_temp() # returns t
+        print "hello VWC"
         VWC = vwc() #returns Sensor 0, Sensor 1, Sensor 2, Sensor 3
         if VWC[2] < 0:
                 VWC[2] = random.randrange(1, 5, 1)
@@ -290,9 +292,12 @@ while True:
         elif VWC[3] > 50:
                 VWC[3] = random.randrange(45, 60, 1)
                 print ('VWC[3] =', VWC[3])
-        time.sleep(10)
+        print "VWC range adjustement done"
+        time.sleep(1)
         w_lev_1 = level_1() #returns distance
-        w_lev_2 = level_2() #returns distance
+        time.sleep(2)
+        w_lev_2 = w_lev_1
+        #w_lev_2 = level_2() #returns distance
         ait_t_h_in = air_in() # returns temperature, humidty
         time.sleep(3)
         ait_t_h_out = air_out() # returns temperature, humidty
@@ -303,6 +308,7 @@ while True:
         print ">> data was written to file sensor_data.txt"
         print ">>> I'll send data to Power BI, and will  sleep for ", reading_interval, "seconds. See you then!"
         data_to_power_bi(data)
+        write_sensor_data(data)
 
         del temperatures[:]
         time.sleep(reading_interval)
