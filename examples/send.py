@@ -14,4 +14,4 @@ sock = socket.socket(socket.AF_INET, # Internet
 while True:
 	sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
 	print "data sent to", UDP_IP
-	time.sleep(3)
+	time.sleep(20)

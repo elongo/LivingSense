@@ -94,7 +94,6 @@ def storify(mapping, *requireds, **defaults):
     Creates a `storage` object from dictionary `mapping`, raising `KeyError` if
     d doesn't have all of the keys in `requireds` and using the default 
     values for keys found in `defaults`.
-
     For example, `storify({'a':1, 'c':3}, b=2, c=0)` will return the equivalent of
     `storage({'a':1, 'b':2, 'c':3})`.
     
@@ -204,7 +203,6 @@ class Counter(storage):
 
     def percent(self, key):
        """Returns what percentage a certain key is of all entries.
-
            >>> c = counter()
            >>> c.add('x')
            >>> c.add('x')
@@ -297,7 +295,6 @@ def _strips(direction, text, remove):
 def rstrips(text, remove):
     """
     removes the string `remove` from the right of `text`
-
         >>> rstrips("foobar", "bar")
         'foo'
     
@@ -323,7 +320,6 @@ def lstrips(text, remove):
 def strips(text, remove):
     """
     removes the string `remove` from the both sides of `text`
-
         >>> strips("foobarfoo", "foo")
         'bar'
     
@@ -393,10 +389,8 @@ def timelimit(timeout):
         TimeoutError: took too long
         >>> timelimit(1)(meaningoflife)()
         42
-
     _Caveat:_ The function isn't stopped after `timeout` seconds but continues 
     executing in a separate thread. (There seems to be no way to kill a thread.)
-
     inspired by <http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/473878>
     """
     def _1(function):
@@ -536,7 +530,6 @@ def re_subm(pat, repl, string):
 def group(seq, size): 
     """
     Returns an iterator over a series of lists of length size from iterable.
-
         >>> list(group([1,2,3,4], 2))
         [[1, 2], [3, 4]]
         >>> list(group([1,2,3,4,5], 2))
@@ -558,13 +551,10 @@ def group(seq, size):
 def uniq(seq, key=None):
     """
     Removes duplicate elements from a list while preserving the order of the rest.
-
         >>> uniq([9,0,2,1,0])
         [9, 0, 2, 1]
-
     The value of the optional `key` parameter should be a function that
     takes a single argument and returns a key to test the uniqueness.
-
         >>> uniq(["Foo", "foo", "bar"], key=lambda s: s.lower())
         ['Foo', 'bar']
     """
@@ -644,9 +634,7 @@ class IterBetter:
         Traceback (most recent call last):
             ...
         IndexError: already passed 3
-
     For boolean test, IterBetter peeps at first value in the itertor without effecting the iteration.
-
         >>> c = iterbetter(iter(range(5)))
         >>> bool(c)
         True
@@ -797,7 +785,6 @@ def dictadd(*dicts):
 
 def requeue(queue, index=-1):
     """Returns the element at index after moving it to the beginning of the queue.
-
         >>> x = [1, 2, 3, 4]
         >>> requeue(x)
         4
@@ -810,7 +797,6 @@ def requeue(queue, index=-1):
 
 def restack(stack, index=0):
     """Returns the element at index after moving it to the top of stack.
-
            >>> x = [1, 2, 3, 4]
            >>> restack(x)
            1
@@ -969,7 +955,6 @@ def denumify(string, pattern):
 def commify(n):
     """
     Add commas to an integer `n`.
-
         >>> commify(1)
         '1'
         >>> commify(123)
@@ -988,7 +973,6 @@ def commify(n):
         '1,234.50'
         >>> commify(None)
         >>>
-
     """
     if n is None: return None
     n = str(n)
@@ -1018,7 +1002,6 @@ def nthstr(n):
     """
     Formats an ordinal.
     Doesn't handle negative numbers.
-
         >>> nthstr(1)
         '1st'
         >>> nthstr(0)
@@ -1029,7 +1012,6 @@ def nthstr(n):
         ['91st', '92nd', '93rd', '94th', '99th', '100th', '101st', '102nd']
         >>> [nthstr(x) for x in [111, 112, 113, 114, 115]]
         ['111th', '112th', '113th', '114th', '115th']
-
     """
     
     assert n >= 0
@@ -1147,13 +1129,10 @@ def tryall(context, prefix=None):
         ----------------------------------------
         results:
            True: 1
-
     For example, you might have a file `test/stuff.py` 
     with a series of functions testing various things in it. 
     At the bottom, have a line:
-
         if __name__ == "__main__": tryall(globals())
-
     Then you can run `python test/stuff.py` and get the results of 
     all the tests.
     """
@@ -1289,7 +1268,6 @@ def autoassign(self, locals):
         <Storage {'a': 1, 'b': 2}>
     
     Generally used in `__init__` methods, as in:
-
         def __init__(self, foo, bar, baz=1): autoassign(self, locals())
     """
     for (key, value) in locals.iteritems():
@@ -1330,7 +1308,6 @@ def safemarkdown(text):
     Converts text to HTML following the rules of Markdown, but blocking any
     outside HTML input, so that only the things supported by Markdown
     can be used. Also converts raw URLs to links.
-
     (requires [markdown.py](http://webpy.org/markdown.py))
     """
     from markdown import markdown
@@ -1352,7 +1329,6 @@ def sendmail(from_address, to_address, subject, message, headers=None, **kw):
     Attachments must be an iterable and each attachment can be either a 
     filename or a file object or a dictionary with filename, content and 
     optionally content_type keys.
-
     If `web.config.smtp_server` is set, it will send the message
     to that SMTP server. Otherwise it will look for 
     `/usr/sbin/sendmail`, the typical location for the sendmail-style

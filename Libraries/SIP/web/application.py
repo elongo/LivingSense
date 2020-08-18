@@ -139,7 +139,6 @@ class application:
                 host="0.0.0.0:8080", headers=None, https=False, **kw):
         """Makes request to this application for the specified path and method.
         Response will be a storage object with data, status and headers.
-
             >>> urls = ("/hello", "hello")
             >>> app = application(urls, globals())
             >>> class hello:
@@ -154,9 +153,7 @@ class application:
             '200 OK'
             >>> response.headers['Content-Type']
             'text/plain'
-
         To use https, use https=True.
-
             >>> urls = ("/redirect", "redirect")
             >>> app = application(urls, globals())
             >>> class redirect:
@@ -168,10 +165,8 @@ class application:
             >>> response = app.request("/redirect", https=True)
             >>> response.headers['Location']
             'https://0.0.0.0:8080/foo'
-
         The headers argument specifies HTTP headers as a mapping object
         such as a dict.
-
             >>> urls = ('/ua', 'uaprinter')
             >>> class uaprinter:
             ...     def GET(self):
@@ -182,7 +177,6 @@ class application:
             ...      'User-Agent': 'a small jumping bean/1.0 (compatible)'
             ... }).data
             'your user-agent is a small jumping bean/1.0 (compatible)'
-
         """
         path, maybe_query = urllib.splitquery(localpart)
         query = maybe_query or ""
@@ -485,7 +479,6 @@ class application:
 class auto_application(application):
     """Application similar to `application` but urls are constructed 
     automatiacally using metaclass.
-
         >>> app = auto_application()
         >>> class hello(app.page):
         ...     def GET(self): return "hello, world"
@@ -523,7 +516,6 @@ subdir_application = application
 class subdomain_application(application):
     """
     Application to delegate requests based on the host.
-
         >>> urls = ("/hello", "hello")
         >>> app = application(urls, globals())
         >>> class hello:
@@ -613,14 +605,11 @@ def autodelegate(prefix=''):
     """
     Returns a method that takes one argument and calls the method named prefix+arg,
     calling `notfound()` if there isn't one. Example:
-
         urls = ('/prefs/(.*)', 'prefs')
-
         class prefs:
             GET = autodelegate('GET_')
             def GET_password(self): pass
             def GET_privacy(self): pass
-
     `GET_password` would get called for `/prefs/password` while `GET_privacy` for 
     `GET_privacy` gets called for `/prefs/privacy`.
     

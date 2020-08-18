@@ -205,9 +205,14 @@ class Store:
         return base64.encodestring(pickled)
 
     def decode(self, session_data):
-        """decodes the data to get back the session dict """
-        pickled = base64.decodestring(session_data)
-        return pickle.loads(pickled)
+        try:
+            """decodes the data to get back the session dict """
+            print "applying delay time.sleep(0.5)"
+            pickled = base64.decodestring(session_data)
+            time.sleep(0.5)
+            return pickle.loads(pickled)
+        except:
+            print "couldn't pickle"
 
 class DiskStore(Store):
     """
