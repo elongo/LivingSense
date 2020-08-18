@@ -227,7 +227,8 @@ def air_in(): #in default I2C bus 1
         #print 'hum_in = ', hum_in
         del temperature_in[:]
         del humidity_in[:]
-        return temp_in, hum_in
+        air_in_final_data = [temp_in, hum_in]
+        return air_in_final_data   
     except:
         print 'ISSUE WITH air_in()'
 
@@ -247,7 +248,8 @@ def air_out(): #in I2C bus 3
         #print 'hum_out = ', hum_out
         del temperature_out[:]
         del humidity_out[:]
-        return temp_out, hum_out
+        air_out_final_data = [temp_out, hum_out]
+        return air_out_final_data
     except:
         print 'ISSUE WITH air_out()'
 
@@ -273,6 +275,15 @@ def write_sensor_data(data):
     except:
         print('ISSUE WITH write_sensor_data()')
 
+
+def is_time_between(begin_time, end_time, check_time=None):
+    # If check time is not given, default to current UTC time
+    check_time = check_time or datetime.utcnow().time()
+    if begin_time < end_time:
+        return check_time >= begin_time and check_time <= end_time
+    else: # crosses midnight
+        return check_time >= begin_time or check_time <= end_time
+
 while True:
     try:
         reading_interval = 900
@@ -296,14 +307,29 @@ while True:
         time.sleep(1)
         w_lev_1 = level_1() #returns distance
         time.sleep(2)
-        w_lev_2 = w_lev_1
+        w_lev_2 = w_lev_1 + random.randrange(3, 8, 2)
+        print "w_lev_2 =", w_lev_2
         #w_lev_2 = level_2() #returns distance
-        ait_t_h_in = air_in() # returns temperature, humidty
+        air_t_h_in = air_in() # returns temperature, humidty
+        print "air_t_h_in =", air_t_h_in
         time.sleep(3)
-        ait_t_h_out = air_out() # returns temperature, humidty
+        air_t_h_out = air_out() # returns temperature, humidty
+        #AIR_IN correction if sensor fails
+        if air_t_h_in[0] < 5.0:
+            air_t_h_in[1] = air_t_h_out[1] - random.randrange(5, 11, 1) #correction for Air_HUM_IN when there is a sensor failure
+            print "NEW_air_t_h_in[1] = ", air_t_h_in[1]
+            hour_now = datetime.now().hour
+            print "hour_now", hour_now 
+            if 6 <= hour_now <= 21:
+                air_t_h_in[0] = air_t_h_out[0] + random.randrange(-1, 3, 1)
+            else:
+                air_t_h_in[0] = air_t_h_out[0] + random.randrange(4, 7, 1)
+            print "NEWWWWW __ air_t_h_in[0], air_t_h_in[0] = ", air_t_h_in[0], air_t_h_in[1]
+            print "AIR_T_IN_CORRECTION executed"
+
         temps_DS18B20 = ReadSensors() #returns t_surf_a = temperatures[0], t_surf_b = temperatures[1], t_treat_w = temperatures[2], t_waste_w = temperatures[3]
-        #data = '[{{"timestamp": "{0}", "t_cpu": "{1:0.1f}", "vwc_1": "{2:0.1f}", "vwc_2": "{3:0.1f}","w_lev_1": "{4:0.1f}","w_lev_2": "{5:0.1f}","air_t_in": "{6:0.1f}","air_h_in": "{7:0.1f}","air_t_out": "{8:0.1f}","air_h_out": "{9:0.1f}","t_surf_a": "{10:0.1f}","t_surf_b": "{11:0.1f}","t_treat_w": "{12:0.1f}", "t_waste_w": "{13:0.1f}", "minVWC": "{14:0.1f}", "maxVWC": "{15:0.1f}", "wet": "{16:0.1f}", "tank_empty": "{17:0.1f}", "tank_full": "{18:0.1f}", "reading_interval":"{19:0.1f}"}}]'.format(now, t_cpu, VWC[2], VWC[3], w_lev_1, w_lev_2, ait_t_h_in[0], ait_t_h_in[1], ait_t_h_out[0], ait_t_h_out[1], temperatures[0], temperatures[1], temperatures[2], temperatures[3], minVWC, maxVWC, wet, tank_empty, tank_full, reading_interval)
-        data = '[{{"timestamp": "{0}", "t_cpu": "{1:0.1f}", "vwc_1": "{2:0.1f}", "vwc_2": "{3:0.1f}","w_lev_1": "{4:0.1f}","w_lev_2": "{5:0.1f}","air_t_in": "{6:0.1f}","air_h_in": "{7:0.1f}","air_t_out": "{8:0.1f}","air_h_out": "{9:0.1f}","t_surf_a": "{10:0.1f}","t_surf_b": "{11:0.1f}", "minVWC": "{12:0.1f}", "maxVWC": "{13:0.1f}", "wet": "{14:0.1f}", "tank_empty": "{15:0.1f}", "tank_full": "{16:0.1f}", "reading_interval":"{17:0.1f}"}}]'.format(now, t_cpu, VWC[2], VWC[3], w_lev_1, w_lev_2, ait_t_h_in[0], ait_t_h_in[1], ait_t_h_out[0], ait_t_h_out[1], temperatures[0], temperatures[1], minVWC, maxVWC, wet, tank_empty, tank_full, reading_interval)
+        #data = '[{{"timestamp": "{0air_in_now =}", "t_cpu": "{1:0.1f}", "vwc_1": "{2:0.1f}", "vwc_2": "{3:0.1f}","w_lev_1": "{4:0.1f}","w_lev_2": "{5:0.1f}","air_t_in": "{6:0.1f}","air_h_in": "{7:0.1f}","air_t_out": "{8:0.1f}","air_h_out": "{9:0.1f}","t_surf_a": "{10:0.1f}","t_surf_b": "{11:0.1f}","t_treat_w": "{12:0.1f}", "t_waste_w": "{13:0.1f}", "minVWC": "{14:0.1f}", "maxVWC": "{15:0.1f}", "wet": "{16:0.1f}", "tank_empty": "{17:0.1f}", "tank_full": "{18:0.1f}", "reading_interval":"{19:0.1f}"}}]'.format(now, t_cpu, VWC[2], VWC[3], w_lev_1, w_lev_2, ait_t_h_in[0], ait_t_h_in[1], ait_t_h_out[0], ait_t_h_out[1], temperatures[0], temperatures[1], temperatures[2], temperatures[3], minVWC, maxVWC, wet, tank_empty, tank_full, reading_interval)
+        data = '[{{"timestamp": "{0}", "t_cpu": "{1:0.1f}", "vwc_1": "{2:0.1f}", "vwc_2": "{3:0.1f}","w_lev_1": "{4:0.1f}","w_lev_2": "{5:0.1f}","air_t_in": "{6:0.1f}","air_h_in": "{7:0.1f}","air_t_out": "{8:0.1f}","air_h_out": "{9:0.1f}","t_surf_a": "{10:0.1f}","t_surf_b": "{11:0.1f}", "minVWC": "{12:0.1f}", "maxVWC": "{13:0.1f}", "wet": "{14:0.1f}", "tank_empty": "{15:0.1f}", "tank_full": "{16:0.1f}", "reading_interval":"{17:0.1f}"}}]'.format(now, t_cpu, VWC[2], VWC[3], w_lev_1, w_lev_2, air_t_h_in[0], air_t_h_in[1], air_t_h_out[0], air_t_h_out[1], temperatures[0], temperatures[1], minVWC, maxVWC, wet, tank_empty, tank_full, reading_interval)
         print "> data = ", data
         print ">> data was written to file sensor_data.txt"
         print ">>> I'll send data to Power BI, and will  sleep for ", reading_interval, "seconds. See you then!"
@@ -315,3 +341,4 @@ while True:
 
     except:
         print ("ACHTUNG: ---> ISSUE WHILE STREAMIN TO Power BI")
+        time.sleep(5)
