@@ -1,10 +1,14 @@
 # LivingSense - LS05
 
+**SYSTEM UNDER DEVELOPMENT - ALTHOUHG ALREADY FUNCTIONAL**
+
 **OPEN SOURCE HOME AUTOMATION TOOLKIT FRO PROTETING BAMBOO MADE HOMES FOR 100 YEARS.** 
 
 Visit this site to visualize the toolkit: https://docs.google.com/presentation/d/1EFnGy-357LWG7eQWofRk9RCmTaMtEqB7XavVx_DGL_k/edit?usp=sharing
 
-This toolkit provides the sensors and actuator to perform different tasks at home. One main task is to provide adaptive facade that protectis bamboo made homes. By sensing direct sunlight and rainfall, this automation toolkit can unfold the shading and "umbrellas" that will keep bamboo safe for more than 100 years, and with the potentail of harvesting sunglight and rainfall as means of energy and water.
+**SUMMARY:** Designed for taking care of bamboo made houses. Has the sensors and actuators capable of controlling adaptive facades, blocking direct sunlight and rainfall that can affect vulnerable materials.This will ensure the home to last 100 years.
+Additionally the system can control lighting, irrigation and air purifying systems, providing extra automation capabilities.
+and with the potentail of harvesting sunglight and rainfall as means of energy and water.
 
     **SOFTWARE**
       LivingSense is an open source software for the Raspberry Pi, which senses environmental data (e.g.: air temperature, 
