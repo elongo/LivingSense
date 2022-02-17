@@ -1,7 +1,5 @@
 # LivingSense - LS05
 
-**SYSTEM UNDER DEVELOPMENT - ALTHOUHG ALREADY FUNCTIONAL**
-
 **OPEN SOURCE HOME AUTOMATION TOOLKIT FRO PROTETING BAMBOO MADE HOMES FOR 100 YEARS.** 
 
 Visit this site to visualize the toolkit: https://docs.google.com/presentation/d/1EFnGy-357LWG7eQWofRk9RCmTaMtEqB7XavVx_DGL_k/edit?usp=sharing
